@@ -18,6 +18,9 @@ class _LoginScreenState extends State<LoginScreen> {
   //비밀번호 보임/안보임 상태 관리 변수
   bool _isPasswordShow = false;
 
+  //자동 로그인 기능 상태 변수
+  bool _isKeepLogin = false;
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -174,34 +177,70 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 4),
 
-                // 6. 비밀번호를 잊으셨나요? 텍스트 버튼
-                Align(
-                  alignment: Alignment.topRight,
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColor.primary,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ForgotPasswordScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      '비밀번호를 잊으셨나요?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                // 6. 로그인 유지 체크 박스와 비밀번호 찾기 텍스트 버튼
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // 로그인 유지 체크 박스
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                            value: _isKeepLogin,
+                            activeColor: AppColor.primary,
+                            checkColor: AppColor.onPrimary,
+                            side: const BorderSide(
+                              color: AppColor.outlineVariant,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            onChanged: (value) {
+                              setState(() {
+                                //체크 상태 변경 후 화면 리빌드
+                                _isKeepLogin = value ?? false;
+                              });
+                            },
+                          ),
+                          const Text(
+                            '로그인 유지',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColor.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+
+                      // 비밀번호 찾기 텍스트 버튼
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColor.primary,
+                          padding: EdgeInsets.zero,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ForgotPasswordScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          '비밀번호를 잊으셨나요?',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 8),
+
 
                 // 7. 로그인 버튼
                 ElevatedButton(
