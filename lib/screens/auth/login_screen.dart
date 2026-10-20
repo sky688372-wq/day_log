@@ -1,5 +1,6 @@
 import 'package:day_log/core/theme/app_color.dart';
 import 'package:day_log/screens/auth/Sign_up_screen.dart';
+import 'package:day_log/screens/auth/forgot_password_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -183,7 +184,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       foregroundColor: AppColor.primary,
                     ),
                     onPressed: () {
-                      //todo 비밀번호 찾기 페이지 만들면 이동 로직 추가하기
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ForgotPasswordScreen(),
+                        ),
+                      );
                     },
                     child: const Text(
                       '비밀번호를 잊으셨나요?',
