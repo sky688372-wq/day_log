@@ -1,4 +1,5 @@
 import 'package:day_log/core/theme/app_color.dart';
+import 'package:day_log/screens/auth/Sign_up_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailCtrl = TextEditingController(); //이메일 컨트롤러
   final TextEditingController _passwordCtrl =
-  TextEditingController(); //비밀번호 컨트롤러
+      TextEditingController(); //비밀번호 컨트롤러
 
   //비밀번호 보임/안보임 상태 관리 변수
   bool _isPasswordShow = false;
@@ -28,7 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppColor.background,
       body: SafeArea(
-        child: SingleChildScrollView( //키보드 등장 시 픽셀 오버 방지
+        child: SingleChildScrollView(
+          //키보드 등장 시 픽셀 오버 방지
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
@@ -218,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 20,),
+                const SizedBox(height: 20),
 
                 // 8. 회원 가입 화면 이동 텍스트 버튼
                 Center(
@@ -239,7 +241,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           foregroundColor: AppColor.primary,
                         ),
                         onPressed: () {
-                          // todo 회원가입 페이지 만들면 이동 로직 추가하기
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          );
                         },
                         child: const Text(
                           '회원가입',
@@ -257,7 +264,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: SafeArea( // 어느 기기든 핸드폰 맨 아래에 위치하도록 SafeArea
+      bottomNavigationBar: SafeArea(
+        // 어느 기기든 핸드폰 맨 아래에 위치하도록 SafeArea
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
@@ -276,17 +284,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       // todo 이용약관 페이지 만들면 이동 로직 추가하기
                     },
-                    child: const Text(
-                      '이용약관',
-                      style: TextStyle(fontSize: 11),
-                    ),
+                    child: const Text('이용약관', style: TextStyle(fontSize: 11)),
                   ),
-                  const Text(
-                    '·',
-                    style: TextStyle(
-                      color: AppColor.textHint,
-                    ),
-                  ),
+                  const Text('·', style: TextStyle(color: AppColor.textHint)),
                   TextButton(
                     style: TextButton.styleFrom(
                       foregroundColor: AppColor.textSecondary,
