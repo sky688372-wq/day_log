@@ -67,67 +67,69 @@ class _OnboardingState extends State<Onboarding> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // 1. 소개 페이지 영역
-            SizedBox(
-              height: screenSize.height * 0.65,
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (value) {
-                  setState(() {
-                    //현재 페이지 변경 후 화면 리빌드
-                    _currentPage = value;
-                  });
-                },
-                children: const [
-                  StudyIntroPage(),
-                  HabitIntroPage(),
-                  QrIntroPage(),
-                ],
-              ),
-            ),
-            
-
-            // 2. 스무스 페이지 인데케이터
-            SmoothPageIndicator(
-                controller: _pageController,
-                count: 3,
-              effect: WormEffect(
-                activeDotColor: AppColor.primaryDark,
-                dotWidth: 10,
-                dotHeight: 10
-              ),
-            ),
-
-            const SizedBox(height: 10,),
-
-            // 3. 다음 페이지와 시작하기 버튼
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 16,
-              ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.primary,
-                  foregroundColor: AppColor.onPrimary,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: _nextPage,
-                child: Text(
-                  _currentPage == 2 ? '시작하기' : '다음',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: SingleChildScrollView( //픽셀 오버 방지를 위해서
+          child: Column(
+            children: [
+              // 1. 소개 페이지 영역
+              SizedBox(
+                height: screenSize.height * 0.65,
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (value) {
+                    setState(() {
+                      //현재 페이지 변경 후 화면 리빌드
+                      _currentPage = value;
+                    });
+                  },
+                  children: const [
+                    StudyIntroPage(),
+                    HabitIntroPage(),
+                    QrIntroPage(),
+                  ],
                 ),
               ),
-            ),
-          ],
+
+
+              // 2. 스무스 페이지 인데케이터
+              SmoothPageIndicator(
+                  controller: _pageController,
+                  count: 3,
+                effect: WormEffect(
+                  activeDotColor: AppColor.primaryDark,
+                  dotWidth: 10,
+                  dotHeight: 10
+                ),
+              ),
+
+              const SizedBox(height: 10,),
+
+              // 3. 다음 페이지와 시작하기 버튼
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.primary,
+                    foregroundColor: AppColor.onPrimary,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _nextPage,
+                  child: Text(
+                    _currentPage == 2 ? '시작하기' : '다음',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
