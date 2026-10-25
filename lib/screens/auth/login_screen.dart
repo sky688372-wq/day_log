@@ -1,7 +1,10 @@
+import 'package:day_log/core/providers/user_info_provider.dart';
 import 'package:day_log/core/theme/app_color.dart';
 import 'package:day_log/screens/auth/Sign_up_screen.dart';
 import 'package:day_log/screens/auth/forgot_password_screen.dart';
+import 'package:day_log/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,13 +16,81 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailCtrl = TextEditingController(); //이메일 컨트롤러
   final TextEditingController _passwordCtrl =
-      TextEditingController(); //비밀번호 컨트롤러
+  TextEditingController(); //비밀번호 컨트롤러
 
   //비밀번호 보임/안보임 상태 관리 변수
   bool _isPasswordShow = false;
 
   //자동 로그인 기능 상태 변수
   bool _isKeepLogin = false;
+
+  //로그인 시도 함수
+  Future<void> _login() async {
+    final userInfoProvider = context.read<UserInfoProvider>();
+
+    //중복 요청 방지
+    if (userInfoProvider.isLoading) return;
+
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
+
+    //유효성 검사 : 입력하지 않은 항목 확인
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColor.primary,
+          content: Text('이메일과 비밀번호를 입력해주세요.'),
+        ),
+      );
+      return;
+    }
+
+    //키보드 내리기
+    FocusScope.of(context).unfocus();
+
+    //프로바이더에서 로그인 처리 후 결과 받기
+    final success = await userInfoProvider.login(
+      email: email,
+      password: password,
+    );
+
+    //비동기 작업 중 화면을 나갔다면 처리 중단
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    if (success) {
+      //todo 로그인 유지 여부에 따른 토큰 저장 기능 연결하기
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColor.primary,
+          content: Text('로그인에 성공했어요.'),
+        ),
+      );
+
+      //다음 화면으로 이동
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Onboarding(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColor.primary,
+          content: Text(
+            userInfoProvider.errorMessage ?? '로그인에 실패했어요.',
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -30,6 +101,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    //프로바이더의 로그인 요청 상태 확인
+    final isLoading = context.watch<UserInfoProvider>().isLoading;
+
     return Scaffold(
       backgroundColor: AppColor.background,
       body: SafeArea(
@@ -93,7 +167,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 30),
 
                 //4. 이메일 입력 텍스트 필드
-                // todo 나중에 백엔드 호출 최소화를 위해서 유효성 검사 해야함
                 TextField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -177,7 +250,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-
                 // 6. 로그인 유지 체크 박스와 비밀번호 찾기 텍스트 버튼
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -224,7 +296,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ForgotPasswordScreen(),
+                              builder: (context) =>
+                              const ForgotPasswordScreen(),
                             ),
                           );
                         },
@@ -240,8 +313,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-
-
                 // 7. 로그인 버튼
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -252,12 +323,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    // todo 로그인 처리 로직 완성되면 넣기
-                  },
-                  child: const Text(
-                    '로그인',
-                    style: TextStyle(
+                  onPressed: isLoading ? null : _login,
+                  child: Text(
+                    isLoading ? '로그인 중...' : '로그인',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColor.onPrimary,
@@ -329,9 +398,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       // todo 이용약관 페이지 만들면 이동 로직 추가하기
                     },
-                    child: const Text('이용약관', style: TextStyle(fontSize: 11)),
+                    child: const Text(
+                      '이용약관',
+                      style: TextStyle(fontSize: 11),
+                    ),
                   ),
-                  const Text('·', style: TextStyle(color: AppColor.textHint)),
+                  const Text(
+                    '·',
+                    style: TextStyle(color: AppColor.textHint),
+                  ),
                   TextButton(
                     style: TextButton.styleFrom(
                       foregroundColor: AppColor.textSecondary,
