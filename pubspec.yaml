@@ -37,6 +37,7 @@ dependencies:
   smooth_page_indicator: ^3.0.0
   dio: ^5.11.1
   provider: ^6.1.5+1
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:

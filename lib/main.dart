@@ -1,5 +1,5 @@
 import 'package:day_log/core/providers/user_info_provider.dart';
-import 'package:day_log/screens/auth/login_screen.dart';
+import 'package:day_log/screens/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
             seedColor: Colors.deepPurple,
           ),
         ),
-        home: const LoginScreen(),
+        home: const SplashScreen()
       ),
     );
   }
