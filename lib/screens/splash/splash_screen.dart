@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
     //애니메이션 시작
     _animationController.forward();
 
-    //todo 자동 로그인 확인 후 결과에 따라 화면 이동하기
+    //todo 자동 로그인 확인 후 결과에 따라 화면 이동하기 -> 응답 받을 동안 대기해두도록
   }
 
   @override
