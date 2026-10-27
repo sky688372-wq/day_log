@@ -1,4 +1,5 @@
 import 'package:day_log/core/theme/app_color.dart';
+import 'package:day_log/screens/main/main_screen.dart';
 import 'package:day_log/screens/onboarding/pages/habit_intro_page.dart';
 import 'package:day_log/screens/onboarding/pages/qr_intro_page.dart';
 import 'package:day_log/screens/onboarding/pages/study_intro_page.dart';
@@ -22,7 +23,10 @@ class _OnboardingState extends State<Onboarding> {
   //다음 페이지로 넘어가는 함수
   void _nextPage() {
     if (_currentPage == 2) {
-      //todo 백엔드 완료되면 로그인 상태 확인 후 홈 화면으로 이동시키기
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
     } else {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -51,7 +55,10 @@ class _OnboardingState extends State<Onboarding> {
           //스킵 텍스트 버튼
           TextButton(
             onPressed: () {
-              //todo 백엔드 완료되면 소개 건너뛰고 로그인 상태 확인 후 홈 화면으로 이동시키기
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+              );
             },
             child: const Text(
               '넘어갈래요',
@@ -67,7 +74,8 @@ class _OnboardingState extends State<Onboarding> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView( //픽셀 오버 방지를 위해서
+        child: SingleChildScrollView(
+          //픽셀 오버 방지를 위해서
           child: Column(
             children: [
               // 1. 소개 페이지 영역
@@ -89,19 +97,18 @@ class _OnboardingState extends State<Onboarding> {
                 ),
               ),
 
-
               // 2. 스무스 페이지 인데케이터
               SmoothPageIndicator(
-                  controller: _pageController,
-                  count: 3,
+                controller: _pageController,
+                count: 3,
                 effect: WormEffect(
                   activeDotColor: AppColor.primaryDark,
                   dotWidth: 10,
-                  dotHeight: 10
+                  dotHeight: 10,
                 ),
               ),
 
-              const SizedBox(height: 10,),
+              const SizedBox(height: 10),
 
               // 3. 다음 페이지와 시작하기 버튼
               Padding(
