@@ -47,6 +47,9 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    //로그인 요청에 사용할 체크값 보관
+    final isKeepLogin = _isKeepLogin;
+
     //키보드 내리기
     FocusScope.of(context).unfocus();
 
@@ -54,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final success = await userInfoProvider.login(
       email: email,
       password: password,
+      isKeepLogin: isKeepLogin,
     );
 
     //비동기 작업 중 화면을 나갔다면 처리 중단
@@ -62,8 +66,6 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).clearSnackBars();
 
     if (success) {
-      //todo 로그인 유지 여부에 따른 토큰 저장 기능 연결하기
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -110,7 +112,10 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           //키보드 등장 시 픽셀 오버 방지
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 20,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -171,10 +176,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   cursorColor: AppColor.primary,
-                  style: const TextStyle(color: AppColor.textPrimary),
+                  style: const TextStyle(
+                    color: AppColor.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: '이메일을 입력해주세요',
-                    hintStyle: const TextStyle(color: AppColor.textHint),
+                    hintStyle: const TextStyle(
+                      color: AppColor.textHint,
+                    ),
                     filled: true,
                     fillColor: AppColor.surfaceCard,
                     prefixIcon: const Icon(
@@ -183,11 +192,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -208,10 +221,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.visiblePassword,
                   obscureText: _isPasswordShow ? false : true,
                   cursorColor: AppColor.primary,
-                  style: const TextStyle(color: AppColor.textPrimary),
+                  style: const TextStyle(
+                    color: AppColor.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: '비밀번호를 입력해주세요',
-                    hintStyle: const TextStyle(color: AppColor.textHint),
+                    hintStyle: const TextStyle(
+                      color: AppColor.textHint,
+                    ),
                     filled: true,
                     fillColor: AppColor.surfaceCard,
                     prefixIcon: const Icon(
@@ -220,11 +237,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -268,7 +289,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: AppColor.outlineVariant,
                             ),
                             visualDensity: VisualDensity.compact,
-                            onChanged: (value) {
+                            onChanged: isLoading
+                                ? null
+                                : (value) {
                               setState(() {
                                 //체크 상태 변경 후 화면 리빌드
                                 _isKeepLogin = value ?? false;
@@ -405,7 +428,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const Text(
                     '·',
-                    style: TextStyle(color: AppColor.textHint),
+                    style: TextStyle(
+                      color: AppColor.textHint,
+                    ),
                   ),
                   TextButton(
                     style: TextButton.styleFrom(

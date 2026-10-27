@@ -1,5 +1,9 @@
+import 'package:day_log/core/providers/user_info_provider.dart';
 import 'package:day_log/core/theme/app_color.dart';
+import 'package:day_log/screens/auth/login_screen.dart';
+import 'package:day_log/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,6 +22,12 @@ class _SplashScreenState extends State<SplashScreen>
 
   //크기 애니메이션
   late final Animation<double> _scaleAnimation;
+
+  //자동 로그인 확인 상태
+  bool _isChecking = true;
+
+  //자동 로그인 오류 메시지
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -46,7 +56,58 @@ class _SplashScreenState extends State<SplashScreen>
     //애니메이션 시작
     _animationController.forward();
 
-    //todo 자동 로그인 확인 후 결과에 따라 화면 이동하기 -> 응답 받을 동안 대기해두도록
+    //첫 화면이 그려진 뒤 자동 로그인 확인
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _checkAutoLogin();
+    });
+  }
+
+  //자동 로그인 확인 후 화면 이동
+  Future<void> _checkAutoLogin() async {
+    setState(() {
+      _isChecking = true;
+      _errorMessage = null;
+    });
+
+    final userInfoProvider = context.read<UserInfoProvider>();
+
+    //애니메이션 표시 시간과 자동 로그인 확인을 함께 진행
+    final animationWait = Future<void>.delayed(
+      const Duration(milliseconds: 700),
+    );
+
+    final result = await userInfoProvider.autoLogin();
+
+    await animationWait;
+
+    //비동기 작업 중 화면을 나갔다면 처리 중단
+    if (!mounted) return;
+
+    if (result == AutoLoginResult.success) {
+      //로그인 성공 시 하단 탭을 관리하는 메인 화면으로 이동
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MainScreen(),
+        ),
+      );
+    } else if (result == AutoLoginResult.loginRequired) {
+      //저장 정보가 없거나 인증에 실패하면 로그인 화면으로 이동
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
+      );
+    } else {
+      //연결 오류 등은 저장 정보를 유지하고 재시도 안내
+      setState(() {
+        _isChecking = false;
+        _errorMessage = userInfoProvider.errorMessage ??
+            '자동 로그인에 실패했어요. 다시 시도해주세요.';
+      });
+    }
   }
 
   @override
@@ -102,6 +163,57 @@ class _SplashScreenState extends State<SplashScreen>
                         color: AppColor.textSecondary,
                       ),
                     ),
+
+                    const SizedBox(height: 28),
+
+                    //자동 로그인 확인 중 표시
+                    if (_isChecking)
+                      const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          color: AppColor.primary,
+                          strokeWidth: 2,
+                        ),
+                      ),
+
+                    //자동 로그인 오류 시 안내와 재시도 버튼
+                    if (_errorMessage != null) ...[
+                      Text(
+                        _errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColor.textSecondary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColor.primary,
+                        ),
+                        onPressed: _checkAutoLogin,
+                        child: const Text('다시 시도'),
+                      ),
+
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColor.textSecondary,
+                        ),
+                        onPressed: () {
+                          //저장 정보는 유지한 채 직접 로그인 화면으로 이동
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('직접 로그인'),
+                      ),
+                    ],
                   ],
                 ),
               ),
