@@ -14,7 +14,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   //현재 선택한 탭
   int _selectedIndex = 0;
-  int _currnetIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +38,11 @@ class _MainScreenState extends State<MainScreen> {
       //본문이 네비게이션 바 뒤까지 보이도록 설정
       extendBody: true,
       backgroundColor: AppColor.background,
-      body: IndexedStack(
-        index: _currnetIndex,
-        children: [
-          // todo각 탭에 해당하는 화면 넣기
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [],
+        ),
       ),
       bottomNavigationBar: SafeArea(
         top: false,
@@ -95,57 +94,89 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(5),
-                          child: Row(
-                            children: List.generate(labels.length, (index) {
-                              final isSelected = _selectedIndex == index;
-
-                              return Expanded(
-                                child: Semantics(
-                                  button: true,
-                                  selected: isSelected,
-                                  label: labels[index],
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedIndex = index;
-                                      });
-                                    },
-                                    child: SizedBox(
-                                      height: double.infinity,
-                                      child: ExcludeSemantics(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              isSelected
-                                                  ? selectedIcons[index]
-                                                  : icons[index],
-                                              size: 26,
-                                              color: AppColor.textPrimary,
-                                            ),
-
-                                            const SizedBox(height: 3),
-
-                                            Text(
-                                              labels[index],
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: isSelected
-                                                    ? FontWeight.w700
-                                                    : FontWeight.w500,
-                                                color: AppColor.textPrimary,
-                                              ),
-                                            ),
-                                          ],
+                          child: Stack(
+                            children: [
+                              //선택한 탭을 따라 움직이는 회색 캡슐
+                              Positioned.fill(
+                                child: AnimatedAlign(
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeOutCubic,
+                                  alignment: Alignment(
+                                    -1.0 +
+                                        (2.0 *
+                                            _selectedIndex /
+                                            (labels.length - 1)),
+                                    0,
+                                  ),
+                                  child: FractionallySizedBox(
+                                    widthFactor: 1 / labels.length,
+                                    heightFactor: 1,
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(35),
+                                        color: AppColor.textPrimary.withValues(
+                                          alpha: 0.12,
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              );
-                            }),
+                              ),
+
+                              //탭 아이콘과 이름
+                              Row(
+                                children: List.generate(labels.length, (index) {
+                                  final isSelected = _selectedIndex == index;
+
+                                  return Expanded(
+                                    child: Semantics(
+                                      button: true,
+                                      selected: isSelected,
+                                      label: labels[index],
+                                      child: GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedIndex = index;
+                                          });
+                                        },
+                                        child: SizedBox(
+                                          height: double.infinity,
+                                          child: ExcludeSemantics(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  isSelected
+                                                      ? selectedIcons[index]
+                                                      : icons[index],
+                                                  size: 26,
+                                                  color: AppColor.textPrimary,
+                                                ),
+
+                                                const SizedBox(height: 3),
+
+                                                Text(
+                                                  labels[index],
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: isSelected
+                                                        ? FontWeight.w700
+                                                        : FontWeight.w500,
+                                                    color: AppColor.textPrimary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -156,7 +187,7 @@ class _MainScreenState extends State<MainScreen> {
 
               const SizedBox(width: 10),
 
-              // 2. 独立した円形バーコードボタン
+              // 2. 독립된 원형 바코드 버튼
               DecoratedBox(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -199,7 +230,7 @@ class _MainScreenState extends State<MainScreen> {
                           //todo QR 스캔 화면으로 이동
                         },
                         icon: const Icon(
-                          CupertinoIcons.qrcode_viewfinder,
+                          CupertinoIcons.barcode,
                           size: 30,
                           color: AppColor.textPrimary,
                         ),
