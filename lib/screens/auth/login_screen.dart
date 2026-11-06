@@ -6,6 +6,11 @@ import 'package:day_log/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+//테스트 계정
+//user@example.com
+//********
+
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 

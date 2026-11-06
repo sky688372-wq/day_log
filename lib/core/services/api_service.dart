@@ -2,7 +2,7 @@ import 'package:day_log/core/models/login_response_model.dart';
 import 'package:dio/dio.dart';
 
 class ApiService {
-  //dio 객체
+  //dio 객체 : 서버가 여러 개가 있는 것이 아니라 디오 클라이언트는 필요 없음
   static final Dio dio = Dio(
     BaseOptions(
       baseUrl: 'http://10.0.2.2:8000/api/v1',
@@ -12,7 +12,8 @@ class ApiService {
     ),
   );
 
-  // 로그인 로직
+  // 1. 로그인 로직
+  // todo 앱 다 만든 후에 이메일 정규식으로 유효성 검사 등을 추가해서 서버에 요청 횟수를 최대한 줄이기
   static Future<LoginResponseModel?> tryLogin({
     required String email,
     required String password,
@@ -38,6 +39,46 @@ class ApiService {
         print('연결 오류: ${e.message}');
       }
       return null;
+    }
+  }
+
+  // 2. 회원 가입 로직
+  // todo 앱 다 만든 후에 이메일 정규식으로 유효성 검사 등을 추가해서 서버에 요청 횟수를 최대한 줄이기
+  static Future<bool> trySignUp({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    try {
+      //회원가입 요청
+      final response = await dio.post(
+        '/auth/register',
+        data: {
+          "email": email.trim(),
+          "password": password,
+          "name": name.trim(),
+        },
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      }
+
+      return false;
+    } on DioException catch (e) {
+      //실패 원인 확인용 출력문
+      print('회원가입 오류 유형: ${e.type}');
+      print('회원가입 오류 코드: ${e.response?.statusCode}');
+
+      //개발 중 원인 확인용으로만 사용
+      //서버 응답에 개인정보가 포함될 수 있으므로 확인용
+      print('회원가입 오류 응답: ${e.response?.data}');
+
+      if (e.response == null) {
+        print('서버 연결 오류: ${e.message}');
+      }
+
+      return false;
     }
   }
 }
