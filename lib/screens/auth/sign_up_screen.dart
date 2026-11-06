@@ -12,144 +12,171 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailCtrl = TextEditingController(); //이메일 컨트롤러
   final TextEditingController _passwordCtrl =
-      TextEditingController(); //비밀번호 컨트롤러
+  TextEditingController(); //비밀번호 컨트롤러
   final TextEditingController _passwordCheckCtrl =
-      TextEditingController(); //비밀번호 확인 컨트롤러
+  TextEditingController(); //비밀번호 확인 컨트롤러
   final TextEditingController _nameCtrl = TextEditingController(); //이름 컨트롤러
 
   //비밀번호 보임/안보임 상태 관리 변수
   bool _isPasswordShow = false;
   bool _isPasswordCheckShow = false;
 
+  //회원가입 요청 상태
+  bool _isLoading = false;
+
   // 회원 가입 함수
   Future<void> tryResister() async {
+    //중복 요청 방지
+    if (_isLoading) return;
+
     final String email = _emailCtrl.text.trim();
-    final String password = _passwordCtrl.text.trim();
-    final String passwordCheck = _passwordCheckCtrl.text.trim();
+    final String password = _passwordCtrl.text;
+    final String passwordCheck = _passwordCheckCtrl.text;
     final String name = _nameCtrl.text.trim();
 
-    // 회원 가입이 성공하면 true 실패하면 실패 이유를 print해야함
-    final response = await ApiService.trySignUp(
-      email: email,
-      password: password,
-      name: name
-    );
+    // 정보를 전부 입력했는지 유효성 검사
+    // todo 스낵바 표시하는 거 전부 다 공통 함수로 최적화하기
 
-    // 정보를 전부 입력했는지 유효성 검사 todo 스낵바 표시하는 거 전부 다 공통 함수로 최적화하기
-
-    // 이메일 입력했는지 검사 todo 나중에 정규식도 추가해서 이메일 유효성 검사 확인하기 -> 공통 함수로
-    if(email.isEmpty) {
+    // 이메일 입력했는지 검사
+    // todo 나중에 정규식도 추가해서 이메일 유효성 검사 확인하기 -> 공통 함수로
+    if (email.isEmpty) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColor.primary,
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              "이메일을 입력해주세요.",
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
-              ),
+        const SnackBar(
+          backgroundColor: AppColor.primary,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            "이메일을 입력해주세요.",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColor.onPrimary,
             ),
-          )
+          ),
+        ),
       );
       return;
     }
 
     // 비밀번호 입력했는지 검사
-    if(password.isEmpty) {
+    if (password.isEmpty) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColor.primary,
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              "비밀번호를 입력해주세요.",
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
-              ),
-            ),
-          )
-      );
-      return;
-    }
-
-    // 비밀번호와 비밀번호 확인의 비빌번호가 일치하는지 검사
-    if(password != passwordCheck) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColor.primary,
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              "비밀번호와 비밀번호와 비밀번호 확인이 일치하지 않습니다.",
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
-              ),
-            ),
-          )
-      );
-      return;
-    }
-
-    // 앱에서 사용할 닉네임을 입력했는지 검사
-    if(name.isEmpty) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColor.primary,
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              "앱에서 사용할 이름을 입력해주세요.",
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
-              ),
-            ),
-          )
-      );
-    }
-
-    // 기본적인 유효성 검사를 전부 통과했다면
-    if(response == true) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColor.primary,
           behavior: SnackBarBehavior.floating,
           content: Text(
-            "회원가입에 성공하셨습니다.",
+            "비밀번호를 입력해주세요.",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.white
+              color: AppColor.onPrimary,
             ),
           ),
-        )
+        ),
       );
-       Navigator.pop(context);
-    } else { // 회원 가입 실패시
+      return;
+    }
+
+    // 비밀번호와 비밀번호 확인이 일치하는지 검사
+    if (password != passwordCheck) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColor.primary,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            "비밀번호와 비밀번호 확인이 일치하지 않습니다.",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColor.onPrimary,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
+    // 앱에서 사용할 이름을 입력했는지 검사
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColor.primary,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            "앱에서 사용할 이름을 입력해주세요.",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColor.onPrimary,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
+    // 기본적인 유효성 검사를 전부 통과했다면 회원가입 요청
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await ApiService.trySignUp(
+        email: email,
+        password: password,
+        name: name,
+      );
+
+      //요청 중 화면을 나갔다면 이후 화면 처리 중단
+      if (!mounted) return;
+
+      if (response) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: AppColor.primary,
             behavior: SnackBarBehavior.floating,
             content: Text(
-              "이미 가입된 계정 또는 잘못된 정보를 입력하셨습니다.",
+              "회원가입에 성공하셨습니다.",
               style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColor.onPrimary,
               ),
             ),
-          )
-      );
+          ),
+        );
+
+        //이전 페이지인 로그인 화면으로 이동
+        Navigator.pop(context);
+      } else {
+        // 회원가입 실패 시
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: AppColor.primary,
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              "회원가입에 실패했습니다. 입력 정보와 서버 연결을 확인해주세요.",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColor.onPrimary,
+              ),
+            ),
+          ),
+        );
+      }
+    } finally {
+      //요청이 끝나면 로딩 상태 해제
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -176,7 +203,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: SingleChildScrollView(
           //버츄얼 키보드 등장 시에 픽셀 오버 안나도록ㅇㅇㅇ
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 20,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -200,7 +230,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
 
                 // 2. 회원가입 타이틀
@@ -214,7 +243,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     letterSpacing: -0.7,
                   ),
                 ),
-
                 const SizedBox(height: 14),
 
                 // 3. 앱 소개 문구
@@ -227,19 +255,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     color: AppColor.textSecondary,
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // 4. 이메일 입력 텍스트 필드
-                // todo 나중에 이메일 유효성 검사와 중복 확인 해야함
+                // todo 나중에 이메일 형식 검사 추가하기
                 TextField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   cursorColor: AppColor.primary,
-                  style: const TextStyle(color: AppColor.textPrimary),
+                  style: const TextStyle(
+                    color: AppColor.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: '이메일을 입력해주세요',
-                    hintStyle: const TextStyle(color: AppColor.textHint),
+                    hintStyle: const TextStyle(
+                      color: AppColor.textHint,
+                    ),
                     filled: true,
                     fillColor: AppColor.surfaceCard,
                     prefixIcon: const Icon(
@@ -248,11 +279,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -263,11 +298,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // 5. 비밀번호 입력 텍스트 필드
-                // todo 나중에 비밀번호 유효성 검사 해야함
+                // todo 나중에 비밀번호 생성 규칙 검사 추가하기
                 TextField(
                   controller: _passwordCtrl,
                   keyboardType: TextInputType.visiblePassword,
@@ -275,10 +309,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   autocorrect: false,
                   enableSuggestions: false,
                   cursorColor: AppColor.primary,
-                  style: const TextStyle(color: AppColor.textPrimary),
+                  style: const TextStyle(
+                    color: AppColor.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: '비밀번호를 입력해주세요',
-                    hintStyle: const TextStyle(color: AppColor.textHint),
+                    hintStyle: const TextStyle(
+                      color: AppColor.textHint,
+                    ),
                     filled: true,
                     fillColor: AppColor.surfaceCard,
                     prefixIcon: const Icon(
@@ -287,11 +325,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -316,11 +358,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // 6. 비밀번호 확인 텍스트 필드
-                // todo 나중에 입력한 비밀번호와 같은지 확인 해야함
                 TextField(
                   controller: _passwordCheckCtrl,
                   keyboardType: TextInputType.visiblePassword,
@@ -328,10 +368,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   autocorrect: false,
                   enableSuggestions: false,
                   cursorColor: AppColor.primary,
-                  style: const TextStyle(color: AppColor.textPrimary),
+                  style: const TextStyle(
+                    color: AppColor.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: '비밀번호를 다시 입력해주세요',
-                    hintStyle: const TextStyle(color: AppColor.textHint),
+                    hintStyle: const TextStyle(
+                      color: AppColor.textHint,
+                    ),
                     filled: true,
                     fillColor: AppColor.surfaceCard,
                     prefixIcon: const Icon(
@@ -340,11 +384,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -369,19 +417,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // 7. 앱에서 사용할 이름 텍스트 필드
-                // todo 나중에 이름 유효성 검사 해야함
+                // todo 나중에 이름 유효성 검사 추가하기
                 TextField(
                   controller: _nameCtrl,
                   keyboardType: TextInputType.name,
                   cursorColor: AppColor.primary,
-                  style: const TextStyle(color: AppColor.textPrimary),
+                  style: const TextStyle(
+                    color: AppColor.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: '앱에서 사용할 이름을 입력해주세요',
-                    hintStyle: const TextStyle(color: AppColor.textHint),
+                    hintStyle: const TextStyle(
+                      color: AppColor.textHint,
+                    ),
                     filled: true,
                     fillColor: AppColor.surfaceCard,
                     prefixIcon: const Icon(
@@ -390,11 +441,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColor.outline),
+                      borderSide: const BorderSide(
+                        color: AppColor.outline,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -405,7 +460,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 28),
 
                 // 8. 회원가입 버튼
@@ -418,15 +472,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    // todo 입력한 정보 유효성 검사 하기
-                    // todo 비밀번호와 비밀번호 확인이 같은지 확인 하기
-                    // todo API로 이메일, 비밀번호, 이름 보내서 회원가입 처리 하기
-                    // todo 회원가입 성공하면 로그인 화면으로 이동하기
-                    // todo 회원가입 실패하면 오류 문구 보여주기
+                  //요청 중에는 버튼 비활성화
+                  onPressed: _isLoading
+                      ? null
+                      : () {
                     tryResister();
                   },
-                  child: const Text(
+                  child: _isLoading
+                      ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColor.primary,
+                    ),
+                  )
+                      : const Text(
                     '회원가입',
                     style: TextStyle(
                       fontSize: 20,
@@ -435,10 +496,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 10),
 
-                //9. 계정이 있다면 다시 뒤로 pop시키는 텍스트 버튼
+                // 9. 계정이 있다면 다시 뒤로 pop시키는 텍스트 버튼
                 Center(
                   child: Wrap(
                     alignment: WrapAlignment.center,
@@ -457,7 +517,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           foregroundColor: AppColor.primary,
                         ),
                         onPressed: () {
-                          //이전 페이지(로그인 페이지로 이동)
+                          //이전 페이지인 로그인 페이지로 이동
                           Navigator.pop(context);
                         },
                         child: const Text(
