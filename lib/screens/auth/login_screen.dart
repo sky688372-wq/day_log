@@ -1,15 +1,12 @@
 import 'package:day_log/core/providers/user_info_provider.dart';
 import 'package:day_log/core/theme/app_color.dart';
-import 'package:day_log/screens/auth/Sign_up_screen.dart';
+import 'package:day_log/core/utils/snack_bar_helper.dart';
+import 'package:day_log/core/utils/validators.dart';
+import 'package:day_log/screens/auth/sign_up_screen.dart';
 import 'package:day_log/screens/auth/forgot_password_screen.dart';
 import 'package:day_log/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-//테스트 계정
-//user@example.com
-//********
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,32 +30,32 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     final userInfoProvider = context.read<UserInfoProvider>();
 
-    //중복 요청 방지
+    // 1. 중복 요청 방지
     if (userInfoProvider.isLoading) return;
 
+    // 2. 입력값 읽기
     final email = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
 
-    //유효성 검사 : 입력하지 않은 항목 확인
+    // 3. 입력하지 않은 항목 확인
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColor.primary,
-          content: Text('이메일과 비밀번호를 입력해주세요.'),
-        ),
-      );
+      SnackBarHelper.show(context, '이메일과 비밀번호를 입력해주세요.');
       return;
     }
 
-    //로그인 요청에 사용할 체크값 보관
+    // 4. 이메일 형식 검사
+    if (!Validators.isValidEmail(email)) {
+      SnackBarHelper.show(context, '올바른 이메일 형식을 입력해주세요.');
+      return;
+    }
+
+    // 5. 로그인 요청에 사용할 체크값 보관
     final isKeepLogin = _isKeepLogin;
 
     //키보드 내리기
     FocusScope.of(context).unfocus();
 
-    //프로바이더에서 로그인 처리 후 결과 받기
+    // 6. 프로바이더에서 로그인 처리 후 결과 받기
     final success = await userInfoProvider.login(
       email: email,
       password: password,
@@ -68,18 +65,11 @@ class _LoginScreenState extends State<LoginScreen> {
     //비동기 작업 중 화면을 나갔다면 처리 중단
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-
+    // 7. 로그인 결과 처리
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColor.primary,
-          content: Text('로그인에 성공했어요.'),
-        ),
-      );
+      SnackBarHelper.show(context, '로그인에 성공했어요.');
 
-      //다음 화면으로 이동
+      //시연을 위해 온보딩 화면으로 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -87,14 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColor.primary,
-          content: Text(
-            userInfoProvider.errorMessage ?? '로그인에 실패했어요.',
-          ),
-        ),
+      SnackBarHelper.show(
+        context,
+        userInfoProvider.errorMessage ?? '로그인에 실패했어요.',
       );
     }
   }
@@ -146,7 +131,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
 
                 // 2. 로그인 타이틀
@@ -160,7 +144,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     letterSpacing: -0.7,
                   ),
                 ),
-
                 const SizedBox(height: 14),
 
                 // 3. 앱 소개 문구
@@ -173,10 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppColor.textSecondary,
                   ),
                 ),
-
                 const SizedBox(height: 30),
 
-                //4. 이메일 입력 텍스트 필드
+                // 4. 이메일 입력 텍스트 필드
                 TextField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -216,11 +198,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
-                //5. 비밀번호 텍스트 필드
-                // todo 나중에 백엔드 호출 최소화를 위해서 유효성 검사 해야함
+                // 5. 비밀번호 텍스트 필드
                 TextField(
                   controller: _passwordCtrl,
                   keyboardType: TextInputType.visiblePassword,
@@ -361,7 +341,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // 8. 회원 가입 화면 이동 텍스트 버튼
