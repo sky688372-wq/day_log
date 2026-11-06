@@ -1,5 +1,7 @@
 import 'package:day_log/core/services/api_service.dart';
 import 'package:day_log/core/theme/app_color.dart';
+import 'package:day_log/core/utils/snack_bar_helper.dart';
+import 'package:day_log/core/utils/validators.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -26,99 +28,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // 회원 가입 함수
   Future<void> tryResister() async {
-    //중복 요청 방지
+    // 1. 중복 요청 방지
     if (_isLoading) return;
 
+    // 2. 입력값 읽기
     final String email = _emailCtrl.text.trim();
     final String password = _passwordCtrl.text;
     final String passwordCheck = _passwordCheckCtrl.text;
     final String name = _nameCtrl.text.trim();
 
-    // 정보를 전부 입력했는지 유효성 검사
-    // todo 스낵바 표시하는 거 전부 다 공통 함수로 최적화하기
-
-    // 이메일 입력했는지 검사
-    // todo 나중에 정규식도 추가해서 이메일 유효성 검사 확인하기 -> 공통 함수로
+    // 3. 이메일 입력 여부 및 형식 검사
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppColor.primary,
-          behavior: SnackBarBehavior.floating,
-          content: Text(
-            "이메일을 입력해주세요.",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColor.onPrimary,
-            ),
-          ),
-        ),
-      );
+      SnackBarHelper.show(context, '이메일을 입력해주세요.');
       return;
     }
 
-    // 비밀번호 입력했는지 검사
+    if (!Validators.isValidEmail(email)) {
+      SnackBarHelper.show(context, '올바른 이메일 형식을 입력해주세요.');
+      return;
+    }
+
+    // 4. 비밀번호 입력 여부 검사
     if (password.isEmpty) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppColor.primary,
-          behavior: SnackBarBehavior.floating,
-          content: Text(
-            "비밀번호를 입력해주세요.",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColor.onPrimary,
-            ),
-          ),
-        ),
-      );
+      SnackBarHelper.show(context, '비밀번호를 입력해주세요.');
       return;
     }
 
-    // 비밀번호와 비밀번호 확인이 일치하는지 검사
+    //todo 서버 정책에 맞춰 비밀번호 생성 규칙 검사 추가하기
+
+    // 5. 비밀번호 확인 입력 여부 및 일치 검사
+    if (passwordCheck.isEmpty) {
+      SnackBarHelper.show(context, '비밀번호 확인을 입력해주세요.');
+      return;
+    }
+
     if (password != passwordCheck) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppColor.primary,
-          behavior: SnackBarBehavior.floating,
-          content: Text(
-            "비밀번호와 비밀번호 확인이 일치하지 않습니다.",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColor.onPrimary,
-            ),
-          ),
-        ),
-      );
+      SnackBarHelper.show(context, '비밀번호와 비밀번호 확인이 일치하지 않습니다.');
       return;
     }
 
-    // 앱에서 사용할 이름을 입력했는지 검사
+    // 6. 이름 입력 여부 검사
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppColor.primary,
-          behavior: SnackBarBehavior.floating,
-          content: Text(
-            "앱에서 사용할 이름을 입력해주세요.",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColor.onPrimary,
-            ),
-          ),
-        ),
-      );
+      SnackBarHelper.show(context, '앱에서 사용할 이름을 입력해주세요.');
       return;
     }
 
-    // 기본적인 유효성 검사를 전부 통과했다면 회원가입 요청
+    //todo 이름 길이 등 추가 규칙은 서버 정책 확인 후 적용하기
+
+    // 7. 유효성 검사를 통과하면 회원가입 요청
     setState(() {
       _isLoading = true;
     });
@@ -133,45 +90,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
       //요청 중 화면을 나갔다면 이후 화면 처리 중단
       if (!mounted) return;
 
+      // 8. 회원가입 결과 처리
       if (response) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColor.primary,
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              "회원가입에 성공하셨습니다.",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColor.onPrimary,
-              ),
-            ),
-          ),
-        );
+        SnackBarHelper.show(context, '회원가입에 성공하셨습니다.');
 
         //이전 페이지인 로그인 화면으로 이동
         Navigator.pop(context);
       } else {
-        // 회원가입 실패 시
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColor.primary,
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              "회원가입에 실패했습니다. 입력 정보와 서버 연결을 확인해주세요.",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColor.onPrimary,
-              ),
-            ),
-          ),
+        SnackBarHelper.show(
+          context,
+          '회원가입에 실패했습니다. 입력 정보와 서버 연결을 확인해주세요.',
         );
       }
     } finally {
-      //요청이 끝나면 로딩 상태 해제
+      // 9. 요청이 끝나면 로딩 상태 해제
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -258,7 +190,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 20),
 
                 // 4. 이메일 입력 텍스트 필드
-                // todo 나중에 이메일 형식 검사 추가하기
                 TextField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -301,7 +232,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 20),
 
                 // 5. 비밀번호 입력 텍스트 필드
-                // todo 나중에 비밀번호 생성 규칙 검사 추가하기
                 TextField(
                   controller: _passwordCtrl,
                   keyboardType: TextInputType.visiblePassword,
@@ -420,7 +350,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 20),
 
                 // 7. 앱에서 사용할 이름 텍스트 필드
-                // todo 나중에 이름 유효성 검사 추가하기
                 TextField(
                   controller: _nameCtrl,
                   keyboardType: TextInputType.name,
