@@ -1,6 +1,7 @@
 import 'package:day_log/core/providers/user_info_provider.dart';
 import 'package:day_log/screens/auth/Sign_up_screen.dart';
 import 'package:day_log/screens/auth/login_screen.dart';
+import 'package:day_log/screens/dev_mode_screen.dart';
 import 'package:day_log/screens/splash/splash_screen.dart';
 import 'package:day_log/test_screen.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
             seedColor: Colors.deepPurple,
           ),
         ),
-        home: const LoginScreen()
+        home: const DevModeScreen()
       ),
     );
   }

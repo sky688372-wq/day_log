@@ -13,6 +13,16 @@ class ApiService {
     ),
   );
 
+  // 개발자 모드를 위한 부분
+  // 서버 주소 기본값 (개발자 모드에서 변경 가능)
+  static const String defaultServerAddress = 'http://10.0.2.2:8000';
+  static const String _apiPath = '/api/v1';
+
+  // 서버 주소 변경 (이후 모든 요청에 적용됨)
+  static void changeServerAddress(String address) {
+    dio.options.baseUrl = '$address$_apiPath';
+  }
+
   // 1. 로그인 로직
   // todo 앱 다 만든 후에 이메일 정규식으로 유효성 검사 등을 추가해서 서버에 요청 횟수를 최대한 줄이기
   static Future<LoginResponseModel?> tryLogin({
