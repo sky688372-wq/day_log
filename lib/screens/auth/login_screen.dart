@@ -393,7 +393,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 9. 이용약관과 개인정보 처리방침
+              // 9. 프로젝트 소개와 시연 안내
               Wrap(
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -403,10 +403,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       foregroundColor: AppColor.textSecondary,
                     ),
                     onPressed: () {
-                      // todo 이용약관 페이지 만들면 이동 로직 추가하기
+                      // todo 프로젝트 소개 페이지 만들면 이동 로직 추가하기
                     },
                     child: const Text(
-                      '이용약관',
+                      '프로젝트 소개',
                       style: TextStyle(fontSize: 11),
                     ),
                   ),
@@ -421,10 +421,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       foregroundColor: AppColor.textSecondary,
                     ),
                     onPressed: () {
-                      // todo 개인정보 처리방침 페이지 만들면 이동 로직 추가하기
+                      // todo 시연 안내 페이지 만들면 이동 로직 추가하기
                     },
                     child: const Text(
-                      '개인정보 처리방침',
+                      '시연 안내',
                       style: TextStyle(fontSize: 11),
                     ),
                   ),
