@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:day_log/core/theme/app_color.dart';
 import 'package:day_log/screens/main/tab/home/home_screen.dart';
+import 'package:day_log/screens/main/tab/statistics/statistics_screen.dart';
 import 'package:day_log/test_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
         index: _selectedIndex,
         children: const [
           HomeScreen(),
-          TestScreen(),
+          StatisticsScreen(),
           Center(child: Text('마이')),
         ],
       ),
