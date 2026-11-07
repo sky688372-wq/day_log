@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:day_log/core/theme/app_color.dart';
+import 'package:day_log/screens/main/tab/home/home_screen.dart';
+import 'package:day_log/test_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -40,11 +42,15 @@ class _MainScreenState extends State<MainScreen> {
       extendBody: false,
       backgroundColor: AppColor.background,
 
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [],
-        ),
+      // 탭을 옮겨도 각 화면의 상태가 유지되도록 IndexedStack 사용
+      // 탭을 추가하면 _labels, icons, selectedIcons, children 개수를 함께 맞춰야 함
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: const [
+          HomeScreen(),
+          TestScreen(),
+          Center(child: Text('마이')),
+        ],
       ),
 
       bottomNavigationBar: SafeArea(
@@ -129,8 +135,8 @@ class _MainScreenState extends State<MainScreen> {
                               // 탭 아이콘과 이름
                               Row(
                                 children: List.generate(_labels.length, (
-                                  index,
-                                ) {
+                                    index,
+                                    ) {
                                   final isSelected = _selectedIndex == index;
 
                                   return Expanded(
@@ -155,7 +161,7 @@ class _MainScreenState extends State<MainScreen> {
                                           child: ExcludeSemantics(
                                             child: Column(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                               children: [
                                                 Icon(
                                                   isSelected
