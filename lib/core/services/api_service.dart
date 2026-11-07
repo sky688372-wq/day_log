@@ -1,3 +1,4 @@
+import 'package:day_log/core/models/daily_statistics_model.dart';
 import 'package:day_log/core/models/login_response_model.dart';
 import 'package:dio/dio.dart';
 
@@ -79,6 +80,42 @@ class ApiService {
       }
 
       return false;
+    }
+  }
+
+  // 3. 일별 통계 조회 로직 todo 최종 확인 된다면 프론트 구문들 주석 처리하기
+  static Future<DailyStatisticsModel?> tryGetDailyStatistics({
+    required String token,
+    required DateTime date,
+  }) async {
+    try {
+      // 서버가 요구하는 YYYY-MM-DD 형식으로 변환
+      final dateText =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+      final response = await dio.get(
+        '/me/statistics/daily',
+        queryParameters: {'date': dateText},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+
+      print('일별 통계 성공: ${response.statusCode}');
+      print('일별 통계 응답: ${response.data}');
+
+      return DailyStatisticsModel.fromJson(response.data);
+    } on DioException catch (e) {
+      print('일별 통계 오류 코드: ${e.response?.statusCode}');
+      print('일별 통계 오류 응답: ${e.response?.data}');
+
+      if (e.response == null) {
+        print('연결 오류: ${e.message}');
+      }
+      return null;
+    } catch (e) {
+      // 응답을 모델로 변환하는 과정 등에서 발생한 오류
+      print('일별 통계 처리 오류: $e');
+      return null;
     }
   }
 }
