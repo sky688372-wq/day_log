@@ -18,6 +18,9 @@ class UserInfoProvider extends ChangeNotifier {
   //로그인한 유저 정보
   LoginResponseModel? _loginResponse;
 
+  //로그인한 유저의 이메일
+  String? _email;
+
   //로그인 요청 상태 변수
   bool _isLoading = false;
 
@@ -26,13 +29,14 @@ class UserInfoProvider extends ChangeNotifier {
 
   //외부에서 확인할 수 있도록 getter
   LoginResponseModel? get loginResponse => _loginResponse;
+  String? get email => _email;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
   //로그인 여부 확인
   bool get isLoggedIn => _loginResponse != null;
 
-  //로그인 시도 함수
+  // 1. 로그인 시도 함수
   Future<bool> login({
     required String email,
     required String password,
@@ -81,8 +85,9 @@ class UserInfoProvider extends ChangeNotifier {
         return false;
       }
 
-      //로그인 성공 시 유저 정보 보관
+      //로그인 성공 시 유저 정보와 이메일 보관
       _loginResponse = loginResponse;
+      _email = email.trim().toLowerCase();
 
       return true;
     } on DioException catch (e) {
@@ -107,13 +112,13 @@ class UserInfoProvider extends ChangeNotifier {
       _errorMessage = '로그인 처리 중 오류가 발생했어요. 다시 시도해주세요.';
       return false;
     } finally {
-      //성공하거나 실패해도 로딩 상태 해제
+      //요청이 끝나면 로딩 상태 해제
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  //자동 로그인 시도 함수
+  // 2. 자동 로그인 시도 함수
   Future<AutoLoginResult> autoLogin() async {
     //중복 요청 방지
     if (_isLoading) return AutoLoginResult.retryRequired;
@@ -129,6 +134,7 @@ class UserInfoProvider extends ChangeNotifier {
       //저장된 정보가 없다면 직접 로그인
       if (loginInfo == null) {
         _loginResponse = null;
+        _email = null;
         return AutoLoginResult.loginRequired;
       }
 
@@ -142,6 +148,7 @@ class UserInfoProvider extends ChangeNotifier {
           password.isEmpty) {
         await _loginStorageService.deleteLoginInfo();
         _loginResponse = null;
+        _email = null;
         return AutoLoginResult.loginRequired;
       }
 
@@ -165,12 +172,14 @@ class UserInfoProvider extends ChangeNotifier {
 
       //새로 발급받은 토큰과 유저 정보 보관
       _loginResponse = loginResponse;
+      _email = email.trim().toLowerCase();
 
       return AutoLoginResult.success;
     } on DioException catch (e) {
       //이메일 또는 비밀번호 인증 실패
       if (e.response?.statusCode == 401) {
         _loginResponse = null;
+        _email = null;
 
         try {
           //인증에 실패한 저장 정보 삭제
@@ -192,10 +201,39 @@ class UserInfoProvider extends ChangeNotifier {
       return AutoLoginResult.retryRequired;
     } catch (e) {
       //보안 저장소 접근이나 응답 처리 중 오류
-      _errorMessage = '자동 로그인 처리 중 오류가 발생했어요. 다시 시도해주세요.';
+      _errorMessage = '자동 로그인 처리 중 오류가 발생했어요.';
       return AutoLoginResult.retryRequired;
     } finally {
-      //성공하거나 실패해도 로딩 상태 해제
+      //요청이 끝나면 로딩 상태 해제
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // 3. 로그아웃
+  Future<bool> logout() async {
+    //로그인 관련 작업과 중복 실행 방지
+    if (_isLoading) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      //자동 로그인 정보만 삭제
+      //개발자 모드에서 저장한 서버 주소는 유지
+      await _loginStorageService.deleteLoginInfo();
+
+      //저장 정보 삭제 성공 후 메모리의 사용자 정보 초기화
+      _loginResponse = null;
+      _email = null;
+
+      return true;
+    } catch (e) {
+      //삭제 실패 시 로그아웃 성공으로 처리하지 않음
+      _errorMessage = '로그아웃하지 못했어요. 잠시 후 다시 시도해주세요.';
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
