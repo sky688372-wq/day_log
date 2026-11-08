@@ -266,26 +266,28 @@ class _MyScreenState extends State<MyScreen> {
     required String title,
     required List<Widget> children,
   }) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-      decoration: BoxDecoration(
-        color: AppColor.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: AppColor.textSecondary,
+    //배경과 터치 효과를 같은 Material에 표시
+    return Material(
+      color: AppColor.surfaceCard,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColor.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          ...children,
-        ],
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
       ),
     );
   }
