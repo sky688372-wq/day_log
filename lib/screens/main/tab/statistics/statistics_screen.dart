@@ -497,7 +497,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   // 14. 전체 통계 탭
   Widget _overviewTab() {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        20 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         _monthSelector(),
         _monthlySummary(),
@@ -523,7 +528,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     };
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        20 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         _monthSelector(),
         TableCalendar<String>(

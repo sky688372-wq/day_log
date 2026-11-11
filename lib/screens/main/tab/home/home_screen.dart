@@ -449,7 +449,12 @@ class _HomeScreenState extends State<HomeScreen> {
             // 내용이 짧아도 당겨서 새로고침 가능
             physics: const AlwaysScrollableScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                24,
+                20,
+                28 + MediaQuery.paddingOf(context).bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

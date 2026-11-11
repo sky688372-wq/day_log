@@ -269,6 +269,9 @@ class _MyScreenState extends State<MyScreen> {
     //배경과 터치 효과를 같은 Material에 표시
     return Material(
       color: AppColor.surfaceCard,
+      elevation: 2,
+      shadowColor: AppColor.textPrimary.withValues(alpha: 0.16),
+      surfaceTintColor: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -362,7 +365,12 @@ class _MyScreenState extends State<MyScreen> {
       child: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            24,
+            20,
+            28 + MediaQuery.paddingOf(context).bottom,
+          ),
           children: [
             // 1. 화면 제목
             const Text(
@@ -383,6 +391,14 @@ class _MyScreenState extends State<MyScreen> {
               decoration: BoxDecoration(
                 color: AppColor.primaryContainer,
                 borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.textPrimary.withValues(alpha: 0.26),
+                    blurRadius: 10,
+                    spreadRadius: -3,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

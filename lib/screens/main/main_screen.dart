@@ -20,6 +20,11 @@ class _MainScreenState extends State<MainScreen> {
   static const List<String> _labels = ['홈', '통계', '마이'];
 
   // 현재 선택한 탭
+  static const double _tabBarBlur = 16.0;
+  static const double _tabBarOpacity = 0.7;
+  static const double _qrButtonBlur = 16.0;
+  static const double _qrButtonOpacity = 0.7;
+
   int _selectedIndex = 0;
   int _recordsRevision = 0;
 
@@ -44,8 +49,8 @@ class _MainScreenState extends State<MainScreen> {
     final systemBottom = MediaQuery.viewPaddingOf(context).bottom;
 
     return Scaffold(
-      // 본문이 네비게이션 바 아래로 확장되지 않도록 설정
-      extendBody: false,
+      // 바와 QR 버튼 주위로 본문이 비치도록 아래까지 확장
+      extendBody: true,
       backgroundColor: AppColor.background,
 
       // 탭을 옮겨도 각 화면의 상태가 유지되도록 IndexedStack 사용
@@ -74,9 +79,10 @@ class _MainScreenState extends State<MainScreen> {
                     borderRadius: BorderRadius.circular(40),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColor.textPrimary.withValues(alpha: 0.08),
-                        blurRadius: 14,
-                        offset: const Offset(0, 2),
+                        color: AppColor.textPrimary.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        spreadRadius: -4,
+                        offset: const Offset(0, 4),
                         blurStyle: BlurStyle.outer,
                       ),
                     ],
@@ -84,20 +90,13 @@ class _MainScreenState extends State<MainScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
                     child: BackdropFilter(
-                      // 네비게이션 바에만 블러 적용
-                      filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                      filter: ImageFilter.blur(sigmaX: _tabBarBlur, sigmaY: _tabBarBlur),
                       child: Container(
                         height: 72,
                         decoration: BoxDecoration(
+
                           borderRadius: BorderRadius.circular(40),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColor.surfaceCard.withValues(alpha: 0.72),
-                              AppColor.surfaceCard.withValues(alpha: 0.5),
-                            ],
-                          ),
+                          color: AppColor.surfaceCard.withValues(alpha: _tabBarOpacity),
                         ),
                         foregroundDecoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(40),
@@ -137,14 +136,12 @@ class _MainScreenState extends State<MainScreen> {
                                   ),
                                 ),
                               ),
-
                               // 탭 아이콘과 이름
                               Row(
                                 children: List.generate(_labels.length, (
                                     index,
                                     ) {
                                   final isSelected = _selectedIndex == index;
-
                                   return Expanded(
                                     child: Semantics(
                                       button: true,
@@ -157,7 +154,6 @@ class _MainScreenState extends State<MainScreen> {
                                           if (_selectedIndex == index) {
                                             return;
                                           }
-
                                           setState(() {
                                             _selectedIndex = index;
                                           });
@@ -212,55 +208,51 @@ class _MainScreenState extends State<MainScreen> {
               const SizedBox(width: 10),
 
               // 2. 독립된 원형 바코드 버튼
-              // 추가 블러 없이 기존 유리 배경과 그림자 유지
               DecoratedBox(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColor.textPrimary.withValues(alpha: 0.08),
-                      blurRadius: 14,
-                      offset: const Offset(0, 2),
+                      color: AppColor.textPrimary.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      spreadRadius: -4,
+                      offset: const Offset(0, 4),
                       blurStyle: BlurStyle.outer,
                     ),
                   ],
                 ),
                 child: ClipOval(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColor.surfaceCard.withValues(alpha: 0.72),
-                          AppColor.surfaceCard.withValues(alpha: 0.5),
-                        ],
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: _qrButtonBlur, sigmaY: _qrButtonBlur),
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColor.surfaceCard.withValues(alpha: _qrButtonOpacity),
                       ),
-                    ),
-                    foregroundDecoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColor.outline.withValues(alpha: 0.5),
-                        width: 0.8,
+                      foregroundDecoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColor.outline.withValues(alpha: 0.5),
+                          width: 0.8,
+                        ),
                       ),
-                    ),
-                    child: IconButton(
-                      tooltip: '공부 기록 스캔',
-                      onPressed: () async {
-                        final saved = await Navigator.of(context).push<bool>(
+                      child: IconButton(
+                        tooltip: '공부 기록 스캔',
+                        onPressed: () async {
+                          final saved = await Navigator.of(context).push<bool>(
                             MaterialPageRoute(builder: (_) => const StudyResultScanScreen()),
-                        );
-                        if (saved == true && mounted) {
-                        setState(() => _recordsRevision++);
-                        }
-                      },
-                      icon: const Icon(
-                        CupertinoIcons.qrcode_viewfinder,
-                        size: 30,
-                        color: AppColor.textPrimary,
+                          );
+                          if (saved == true && mounted) {
+                            setState(() => _recordsRevision++);
+                          }
+                        },
+                        icon: const Icon(
+                          CupertinoIcons.qrcode_viewfinder,
+                          size: 30,
+                          color: AppColor.textPrimary,
+                        ),
                       ),
                     ),
                   ),
