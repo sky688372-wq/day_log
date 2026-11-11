@@ -40,6 +40,9 @@ class _MainScreenState extends State<MainScreen> {
       isIOS ? CupertinoIcons.person_fill : Icons.person,
     ];
 
+    // 각 폰마다 바텀 네비게이터 바가 시스템 자체의 바텀 네비게이터바에 바로 붙어 있지 않도록 하기 위함
+    final systemBottom = MediaQuery.viewPaddingOf(context).bottom;
+
     return Scaffold(
       // 본문이 네비게이션 바 아래로 확장되지 않도록 설정
       extendBody: false,
@@ -58,8 +61,8 @@ class _MainScreenState extends State<MainScreen> {
 
       bottomNavigationBar: SafeArea(
         top: false,
-        // iOS 홈 인디케이터와 간격 확보
-        minimum: const EdgeInsets.only(bottom: 20),
+        // 시스템 하단 영역 위에 추가 간격 확보
+        minimum: EdgeInsets.only(bottom: systemBottom + 12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -248,10 +251,10 @@ class _MainScreenState extends State<MainScreen> {
                       tooltip: '공부 기록 스캔',
                       onPressed: () async {
                         final saved = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute(builder: (_) => const StudyResultScanScreen()),
+                            MaterialPageRoute(builder: (_) => const StudyResultScanScreen()),
                         );
                         if (saved == true && mounted) {
-                          setState(() => _recordsRevision++);
+                        setState(() => _recordsRevision++);
                         }
                       },
                       icon: const Icon(
