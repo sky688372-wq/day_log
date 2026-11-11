@@ -405,7 +405,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // TODO: QR 스캔·등록 기능 연결 후 아래 안내 문구 변경
           const Text(
-            'QR 기록 등록 기능을 준비하고 있어요.',
+            '하단 QR 버튼으로 좌석의 학습 기록을 저장하세요.',
             style: TextStyle(
               fontSize: 12,
               color: AppColor.textSecondary,

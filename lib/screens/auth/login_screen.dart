@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final bool returnAfterLogin;
+  const LoginScreen({super.key, this.returnAfterLogin = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -68,6 +69,11 @@ class _LoginScreenState extends State<LoginScreen> {
     // 7. 로그인 결과 처리
     if (success) {
       SnackBarHelper.show(context, '로그인에 성공했어요.');
+
+      if (widget.returnAfterLogin) {
+        Navigator.pop(context, true);
+        return;
+      }
 
       //시연을 위해 온보딩 화면으로 이동
       Navigator.pushReplacement(

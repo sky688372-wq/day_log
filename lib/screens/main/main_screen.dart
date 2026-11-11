@@ -4,7 +4,7 @@ import 'package:day_log/core/theme/app_color.dart';
 import 'package:day_log/screens/main/tab/home/home_screen.dart';
 import 'package:day_log/screens/main/tab/my/my_screen.dart';
 import 'package:day_log/screens/main/tab/statistics/statistics_screen.dart';
-import 'package:day_log/test_screen.dart';
+import 'package:day_log/screens/qr/study_result_scan_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +21,7 @@ class _MainScreenState extends State<MainScreen> {
 
   // 현재 선택한 탭
   int _selectedIndex = 0;
+  int _recordsRevision = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +49,10 @@ class _MainScreenState extends State<MainScreen> {
       // 탭을 추가하면 _labels, icons, selectedIcons, children 개수를 함께 맞춰야 함
       body: IndexedStack(
         index: _selectedIndex,
-        children: const [
-          HomeScreen(),
-          StatisticsScreen(),
-          MyScreen()
+        children: [
+          HomeScreen(key: ValueKey('home-$_recordsRevision')),
+          StatisticsScreen(key: ValueKey('statistics-$_recordsRevision')),
+          const MyScreen()
         ],
       ),
 
@@ -245,8 +246,13 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     child: IconButton(
                       tooltip: '공부 기록 스캔',
-                      onPressed: () {
-                        // TODO: QR 스캔 화면으로 이동
+                      onPressed: () async {
+                        final saved = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute(builder: (_) => const StudyResultScanScreen()),
+                        );
+                        if (saved == true && mounted) {
+                          setState(() => _recordsRevision++);
+                        }
                       },
                       icon: const Icon(
                         CupertinoIcons.qrcode_viewfinder,

@@ -1,0 +1,54 @@
+name: Build QR study result APK
+
+on:
+  push:
+    branches: ['feature/qr-study-results']
+    tags: ['qr-*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.44.6'
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - name: Analyze QR implementation
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib/core/services/study_result_service.dart lib/screens/qr test/study_result_test.dart
+      - run: flutter test
+      - name: Build hotspot demo APK
+        run: >-
+          flutter build apk --release --build-name=1.1.0 --build-number=3
+          --dart-define=API_SERVER_ADDRESS=http://192.168.137.1:8000
+          --dart-define=RESULT_WEB_ORIGIN=http://192.168.137.1:3000
+      - name: Verify permissions and package
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" manifest permissions "$APK" | grep -F android.permission.INTERNET
+          "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" manifest permissions "$APK" | grep -F android.permission.CAMERA
+          cp "$APK" day-log-qr.apk
+          sha256sum day-log-qr.apk > day-log-qr.apk.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: day-log-qr
+          path: |
+            day-log-qr.apk
+            day-log-qr.apk.sha256
+      - name: Publish tagged APK
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" day-log-qr.apk day-log-qr.apk.sha256 --title "Day Log QR study results" --notes-file QR_RELEASE.md

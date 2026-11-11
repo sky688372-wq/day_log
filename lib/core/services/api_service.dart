@@ -7,7 +7,7 @@ class ApiService {
   // 앱에서 공통으로 사용하는 Dio 객체
   static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: 'http://10.0.2.2:8000/api/v1',
+      baseUrl: '$defaultServerAddress/api/v1',
       headers: {'Content-Type': 'application/json'},
       receiveTimeout: const Duration(seconds: 4),
       connectTimeout: const Duration(seconds: 4),
@@ -16,7 +16,9 @@ class ApiService {
 
   // 개발자 모드를 위한 부분
   // 서버 주소 기본값 (개발자 모드에서 변경 가능)
-  static const String defaultServerAddress = 'http://10.0.2.2:8000';
+  static const String defaultServerAddress = String.fromEnvironment(
+    'API_SERVER_ADDRESS', defaultValue: 'http://10.0.2.2:8000');
+  static const String resultWebOrigin = String.fromEnvironment('RESULT_WEB_ORIGIN');
   static const String _apiPath = '/api/v1';
 
   // 서버 주소 변경 (이후 모든 요청에 적용됨)
