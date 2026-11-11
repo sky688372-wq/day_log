@@ -30,19 +30,13 @@
 	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
-	<key>NSCameraUsageDescription</key>
-	<string>좌석 QR을 스캔해 학습 기록을 계정에 저장합니다.</string>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 		<key>UISceneConfigurations</key>
 		<dict>
-	<key>NSCameraUsageDescription</key>
-	<string>좌석 QR을 스캔해 학습 기록을 계정에 저장합니다.</string>
 			<key>UIWindowSceneSessionRoleApplication</key>
 			<array>
 				<dict>
-	<key>NSCameraUsageDescription</key>
-	<string>좌석 QR을 스캔해 학습 기록을 계정에 저장합니다.</string>
 					<key>UISceneClassName</key>
 					<string>UIWindowScene</string>
 					<key>UISceneConfigurationName</key>
