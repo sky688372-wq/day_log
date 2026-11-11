@@ -60,7 +60,7 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           HomeScreen(key: ValueKey('home-$_recordsRevision')),
           StatisticsScreen(key: ValueKey('statistics-$_recordsRevision')),
-          const MyScreen()
+          const MyScreen(),
         ],
       ),
 
@@ -90,13 +90,17 @@ class _MainScreenState extends State<MainScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: _tabBarBlur, sigmaY: _tabBarBlur),
+                      filter: ImageFilter.blur(
+                        sigmaX: _tabBarBlur,
+                        sigmaY: _tabBarBlur,
+                      ),
                       child: Container(
                         height: 72,
                         decoration: BoxDecoration(
-
                           borderRadius: BorderRadius.circular(40),
-                          color: AppColor.surfaceCard.withValues(alpha: _tabBarOpacity),
+                          color: AppColor.surfaceCard.withValues(
+                            alpha: _tabBarOpacity,
+                          ),
                         ),
                         foregroundDecoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(40),
@@ -139,8 +143,8 @@ class _MainScreenState extends State<MainScreen> {
                               // 탭 아이콘과 이름
                               Row(
                                 children: List.generate(_labels.length, (
-                                    index,
-                                    ) {
+                                  index,
+                                ) {
                                   final isSelected = _selectedIndex == index;
                                   return Expanded(
                                     child: Semantics(
@@ -163,7 +167,7 @@ class _MainScreenState extends State<MainScreen> {
                                           child: ExcludeSemantics(
                                             child: Column(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 Icon(
                                                   isSelected
@@ -223,13 +227,18 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 child: ClipOval(
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: _qrButtonBlur, sigmaY: _qrButtonBlur),
+                    filter: ImageFilter.blur(
+                      sigmaX: _qrButtonBlur,
+                      sigmaY: _qrButtonBlur,
+                    ),
                     child: Container(
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColor.surfaceCard.withValues(alpha: _qrButtonOpacity),
+                        color: AppColor.surfaceCard.withValues(
+                          alpha: _qrButtonOpacity,
+                        ),
                       ),
                       foregroundDecoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -242,7 +251,9 @@ class _MainScreenState extends State<MainScreen> {
                         tooltip: '공부 기록 스캔',
                         onPressed: () async {
                           final saved = await Navigator.of(context).push<bool>(
-                            MaterialPageRoute(builder: (_) => const StudyResultScanScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const StudyResultScanScreen(),
+                            ),
                           );
                           if (saved == true && mounted) {
                             setState(() => _recordsRevision++);

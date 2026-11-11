@@ -39,18 +39,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 1. 한국 표준시 기준 오늘 날짜
   DateTime _kstToday() {
-    final now = DateTime.now().toUtc().add(
-      const Duration(hours: 9),
-    );
+    final now = DateTime.now().toUtc().add(const Duration(hours: 9));
 
     // 서버에 전달할 연·월·일 값으로 사용
     return DateTime.utc(now.year, now.month, now.day);
   }
 
   // 2. 오늘 학습 기록 불러오기
-  Future<void> _loadToday({
-    bool showLoading = true,
-  }) async {
+  Future<void> _loadToday({bool showLoading = true}) async {
     if (_isRequesting) return;
 
     final token = context.read<UserInfoProvider>().loginResponse?.token;
@@ -108,10 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColor.primary,
-            AppColor.primaryDark,
-          ],
+          colors: [AppColor.primary, AppColor.primaryDark],
         ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
@@ -175,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ]
-
           // 3. 조회 실패
           else if (_isFailed || today == null) ...[
             const Text(
@@ -201,12 +193,11 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: _isRequesting
                   ? null
                   : () {
-                _loadToday();
-              },
+                      _loadToday();
+                    },
               style: TextButton.styleFrom(
                 foregroundColor: AppColor.onPrimary,
-                backgroundColor:
-                AppColor.onPrimary.withValues(alpha: 0.16),
+                backgroundColor: AppColor.onPrimary.withValues(alpha: 0.16),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,
@@ -215,75 +206,69 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const Icon(
-                Icons.refresh_rounded,
-                size: 19,
-              ),
+              icon: const Icon(Icons.refresh_rounded, size: 19),
               label: const Text(
                 '다시 시도',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ]
-
           // 4. 정상 조회
           else ...[
-              Text(
-                TimeFormatter.toHm(today.totalStudySeconds),
-                style: const TextStyle(
-                  fontSize: 40,
-                  height: 1.2,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1,
-                  color: AppColor.onPrimary,
-                ),
+            Text(
+              TimeFormatter.toHm(today.totalStudySeconds),
+              style: const TextStyle(
+                fontSize: 40,
+                height: 1.2,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1,
+                color: AppColor.onPrimary,
               ),
-              const SizedBox(height: 12),
-              Text(
-                today.sessionCount == 0
-                    ? '오늘 날짜로 등록된 기록이 아직 없어요.'
-                    : '오늘 날짜로 등록된 공부 시간을 모았어요.',
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: AppColor.onPrimary.withValues(alpha: 0.9),
-                ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              today.sessionCount == 0
+                  ? '오늘 날짜로 등록된 기록이 아직 없어요.'
+                  : '오늘 날짜로 등록된 공부 시간을 모았어요.',
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: AppColor.onPrimary.withValues(alpha: 0.9),
               ),
-              const SizedBox(height: 24),
-              Divider(
-                height: 1,
-                color: AppColor.onPrimary.withValues(alpha: 0.24),
-              ),
-              const SizedBox(height: 18),
+            ),
+            const SizedBox(height: 24),
+            Divider(
+              height: 1,
+              color: AppColor.onPrimary.withValues(alpha: 0.24),
+            ),
+            const SizedBox(height: 18),
 
-              // 실시간 측정값이 아닌 등록된 기록의 개수
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Icon(
-                      Icons.menu_book_rounded,
-                      size: 20,
+            // 실시간 측정값이 아닌 등록된 기록의 개수
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.menu_book_rounded,
+                    size: 20,
+                    color: AppColor.onPrimary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '등록된 학습 기록 ${today.sessionCount}개',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                       color: AppColor.onPrimary,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      '등록된 학습 기록 ${today.sessionCount}개',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColor.onPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -346,9 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: AppColor.surfaceCard,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColor.outline,
-        ),
+        border: Border.all(color: AppColor.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,19 +380,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(
-            height: 1,
-            color: AppColor.outline,
-          ),
+          const Divider(height: 1, color: AppColor.outline),
           const SizedBox(height: 14),
 
           // TODO: QR 스캔·등록 기능 연결 후 아래 안내 문구 변경
           const Text(
             '하단 QR 버튼으로 좌석의 학습 기록을 저장하세요.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColor.textSecondary,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
           ),
         ],
       ),
@@ -423,15 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final name = userData?.name?.trim();
     final hasName = name != null && name.isNotEmpty;
 
-    const weekdays = [
-      '월',
-      '화',
-      '수',
-      '목',
-      '금',
-      '토',
-      '일',
-    ];
+    const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
     final todayText =
         '${_todayDate.month}월 ${_todayDate.day}일 '

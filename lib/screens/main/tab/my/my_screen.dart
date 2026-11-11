@@ -16,8 +16,7 @@ class MyScreen extends StatefulWidget {
 
 class _MyScreenState extends State<MyScreen> {
   //관련 사이트 주소
-  static const String _appGithubUrl =
-      'https://github.com/sky688372-wq/day_log';
+  static const String _appGithubUrl = 'https://github.com/sky688372-wq/day_log';
 
   static const String _projectGithubUrl =
       'https://github.com/cowbrush03/MDP2026-Study';
@@ -61,9 +60,9 @@ class _MyScreenState extends State<MyScreen> {
 
   // 2. 외부 사이트 열기
   Future<void> _openUrl(
-      String address, {
-        String emptyMessage = '아직 준비 중인 페이지예요.',
-      }) async {
+    String address, {
+    String emptyMessage = '아직 준비 중인 페이지예요.',
+  }) async {
     final value = address.trim();
 
     //주소가 아직 입력되지 않은 경우
@@ -78,43 +77,28 @@ class _MyScreenState extends State<MyScreen> {
     if (uri == null ||
         (uri.scheme != 'https' && uri.scheme != 'http') ||
         uri.host.isEmpty) {
-      SnackBarHelper.show(
-        context,
-        '사이트 주소를 확인해주세요.',
-      );
+      SnackBarHelper.show(context, '사이트 주소를 확인해주세요.');
       return;
     }
 
     try {
       //외부 브라우저 또는 해당 링크를 처리하는 앱으로 이동
-      final opened = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
 
       if (!mounted) return;
 
       if (!opened) {
-        SnackBarHelper.show(
-          context,
-          '페이지를 열지 못했어요. 잠시 후 다시 시도해주세요.',
-        );
+        SnackBarHelper.show(context, '페이지를 열지 못했어요. 잠시 후 다시 시도해주세요.');
       }
     } catch (e) {
       if (!mounted) return;
 
-      SnackBarHelper.show(
-        context,
-        '페이지를 열지 못했어요. 연결 상태를 확인해주세요.',
-      );
+      SnackBarHelper.show(context, '페이지를 열지 못했어요. 연결 상태를 확인해주세요.');
     }
   }
 
   // 3. 간단한 안내 표시
-  void _showInfo({
-    required String title,
-    required String content,
-  }) {
+  void _showInfo({required String title, required String content}) {
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -146,9 +130,7 @@ class _MyScreenState extends State<MyScreen> {
               },
               child: const Text(
                 '확인',
-                style: TextStyle(
-                  color: AppColor.primary,
-                ),
+                style: TextStyle(color: AppColor.primary),
               ),
             ),
           ],
@@ -181,11 +163,8 @@ class _MyScreenState extends State<MyScreen> {
           content: const SingleChildScrollView(
             child: Text(
               '이 기기에 저장된 자동 로그인 정보가 삭제돼요.\n'
-                  '학습 기록은 계정에 그대로 남아 있어요.',
-              style: TextStyle(
-                height: 1.6,
-                color: AppColor.textSecondary,
-              ),
+              '학습 기록은 계정에 그대로 남아 있어요.',
+              style: TextStyle(height: 1.6, color: AppColor.textSecondary),
             ),
           ),
           actions: [
@@ -195,9 +174,7 @@ class _MyScreenState extends State<MyScreen> {
               },
               child: const Text(
                 '취소',
-                style: TextStyle(
-                  color: AppColor.textSecondary,
-                ),
+                style: TextStyle(color: AppColor.textSecondary),
               ),
             ),
             ElevatedButton(
@@ -244,10 +221,8 @@ class _MyScreenState extends State<MyScreen> {
     if (success) {
       //이전 사용자 화면으로 돌아갈 수 없도록 기존 화면 제거
       Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        ),
-            (route) => false,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
       );
     } else {
       setState(() {
@@ -262,10 +237,7 @@ class _MyScreenState extends State<MyScreen> {
   }
 
   // 6. 메뉴 카드
-  Widget _sectionCard({
-    required String title,
-    required List<Widget> children,
-  }) {
+  Widget _sectionCard({required String title, required List<Widget> children}) {
     //배경과 터치 효과를 같은 Material에 표시
     return Material(
       color: AppColor.surfaceCard,
@@ -315,11 +287,7 @@ class _MyScreenState extends State<MyScreen> {
           color: iconBackground,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          icon,
-          size: 21,
-          color: iconColor,
-        ),
+        child: Icon(icon, size: 21, color: iconColor),
       ),
       title: Text(
         title,
@@ -332,12 +300,12 @@ class _MyScreenState extends State<MyScreen> {
       subtitle: subtitle == null
           ? null
           : Text(
-        subtitle,
-        style: const TextStyle(
-          fontSize: 12,
-          color: AppColor.textSecondary,
-        ),
-      ),
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColor.textSecondary,
+              ),
+            ),
       trailing: Icon(
         external ? Icons.open_in_new : Icons.chevron_right,
         size: external ? 17 : 22,
@@ -354,9 +322,7 @@ class _MyScreenState extends State<MyScreen> {
     final name = userInfoProvider.loginResponse?.name?.trim();
     final email = userInfoProvider.email?.trim();
 
-    final greeting = name == null || name.isEmpty
-        ? '반가워요!'
-        : '$name님, 반가워요!';
+    final greeting = name == null || name.isEmpty ? '반가워요!' : '$name님, 반가워요!';
 
     final hasPortfolio = _portfolioUrl.trim().isNotEmpty;
 
@@ -455,7 +421,7 @@ class _MyScreenState extends State<MyScreen> {
                     _showInfo(
                       title: '학습 기록 등록 방법',
                       content:
-                      '오늘로그는 좌석에서 만들어진 학습 결과를 '
+                          '오늘로그는 좌석에서 만들어진 학습 결과를 '
                           'QR로 등록하는 방식의 앱이에요.\n\n'
                           '학습을 마친 뒤 좌석 화면에 표시된 QR을 '
                           '오늘로그에서 스캔하면, 로그인한 계정의 '
@@ -471,7 +437,7 @@ class _MyScreenState extends State<MyScreen> {
                     _showInfo(
                       title: '통계 확인 방법',
                       content:
-                      '아래 통계 탭에서 등록된 학습 기록을 확인할 수 있어요.\n\n'
+                          '아래 통계 탭에서 등록된 학습 기록을 확인할 수 있어요.\n\n'
                           '전체 통계\n'
                           '월별 총 학습 시간과 학습일 수, '
                           '주별 학습 시간 그래프를 확인해요.\n\n'
@@ -502,7 +468,7 @@ class _MyScreenState extends State<MyScreen> {
                     _showInfo(
                       title: '오늘로그 소개',
                       content:
-                      '오늘로그는 AI 스마트 학습 좌석 프로젝트의 '
+                          '오늘로그는 AI 스마트 학습 좌석 프로젝트의 '
                           '학습 기록 앱이에요.\n\n'
                           '좌석에서 만들어진 학습 결과를 등록하고, '
                           '날짜별 기록과 학습 시간, 자세·졸음 감지 정보를 '
@@ -541,10 +507,7 @@ class _MyScreenState extends State<MyScreen> {
                   iconBackground: AppColor.secondaryContainer,
                   external: true,
                   onTap: () {
-                    _openUrl(
-                      _portfolioUrl,
-                      emptyMessage: '포트폴리오를 준비 중이에요.',
-                    );
+                    _openUrl(_portfolioUrl, emptyMessage: '포트폴리오를 준비 중이에요.');
                   },
                 ),
               ],
@@ -572,16 +535,11 @@ class _MyScreenState extends State<MyScreen> {
                   iconColor: AppColor.textSecondary,
                   iconBackground: AppColor.surfaceSunken,
                   onTap: () {
-                    showLicensePage(
-                      context: context,
-                      applicationName: '오늘로그',
-                    );
+                    showLicensePage(context: context, applicationName: '오늘로그');
                   },
                 ),
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 4,
-                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
                   horizontalTitleGap: 12,
                   leading: Container(
                     width: 40,
@@ -637,10 +595,7 @@ class _MyScreenState extends State<MyScreen> {
                 onPressed: _isLoggingOut || userInfoProvider.isLoading
                     ? null
                     : _confirmLogout,
-                icon: const Icon(
-                  Icons.logout_rounded,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.logout_rounded, size: 20),
                 label: Text(
                   _isLoggingOut ? '로그아웃 중...' : '로그아웃',
                   style: const TextStyle(

@@ -38,15 +38,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   int _weeklyRequestId = 0;
   int _dailyRequestId = 0;
 
-  static const List<String> _weekdays = [
-    '월',
-    '화',
-    '수',
-    '목',
-    '금',
-    '토',
-    '일',
-  ];
+  static const List<String> _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
   @override
   void initState() {
@@ -104,10 +96,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final result = token == null || token.trim().isEmpty
         ? null
-        : await ApiService.tryGetMonthlyStatistics(
-      token: token,
-      month: date,
-    );
+        : await ApiService.tryGetMonthlyStatistics(token: token, month: date);
 
     if (!mounted || requestId != _monthlyRequestId) return;
 
@@ -131,10 +120,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final result = token == null || token.trim().isEmpty
         ? null
         : await ApiService.tryGetWeeklyStatistics(
-      token: token,
-      startDate: start,
-      endDate: start.add(const Duration(days: 6)),
-    );
+            token: token,
+            startDate: start,
+            endDate: start.add(const Duration(days: 6)),
+          );
 
     if (!mounted || requestId != _weeklyRequestId) return;
 
@@ -157,10 +146,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final result = token == null || token.trim().isEmpty
         ? null
-        : await ApiService.tryGetDailyStatistics(
-      token: token,
-      date: date,
-    );
+        : await ApiService.tryGetDailyStatistics(token: token, date: date);
 
     if (!mounted || requestId != _dailyRequestId) return;
 
@@ -196,13 +182,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   // 7. 월 이동
   void _moveMonth(int amount) {
-    _selectDay(
-      DateTime.utc(
-        _selectedDay.year,
-        _selectedDay.month + amount,
-        1,
-      ),
-    );
+    _selectDay(DateTime.utc(_selectedDay.year, _selectedDay.month + amount, 1));
   }
 
   // 8. 세션 시각을 KST로 표시
@@ -218,11 +198,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _loading() {
     return const Padding(
       padding: EdgeInsets.all(24),
-      child: Center(
-        child: CircularProgressIndicator(
-          color: AppColor.primary,
-        ),
-      ),
+      child: Center(child: CircularProgressIndicator(color: AppColor.primary)),
     );
   }
 
@@ -237,10 +213,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColor.textSecondary),
           ),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('다시 시도'),
-          ),
+          TextButton(onPressed: onRetry, child: const Text('다시 시도')),
         ],
       ),
     );
@@ -260,10 +233,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         Text(
           '${_selectedDay.year}년 ${_selectedDay.month}월',
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         IconButton(
           tooltip: '다음 달',
@@ -328,9 +298,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             IconButton(
               tooltip: '이전 주',
               onPressed: () {
-                final next = _selectedDay.subtract(
-                  const Duration(days: 7),
-                );
+                final next = _selectedDay.subtract(const Duration(days: 7));
                 if (next.isBefore(DateTime.utc(2000))) return;
                 _selectDay(next);
               },
@@ -339,16 +307,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Expanded(
               child: Text(
                 '${start.year}.${start.month}.${start.day}'
-                    ' ~ ${end.year}.${end.month}.${end.day}',
+                ' ~ ${end.year}.${end.month}.${end.day}',
                 textAlign: TextAlign.center,
               ),
             ),
             IconButton(
               tooltip: '다음 주',
               onPressed: () {
-                final next = _selectedDay.add(
-                  const Duration(days: 7),
-                );
+                final next = _selectedDay.add(const Duration(days: 7));
                 if (next.isAfter(DateTime.utc(2100, 12, 31))) return;
                 _selectDay(next);
               },
@@ -374,7 +340,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final days = List.generate(
       7,
-          (index) => _weekStart.add(Duration(days: index)),
+      (index) => _weekStart.add(Duration(days: index)),
     );
 
     final minutes = days
@@ -383,7 +349,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final highest = minutes.fold<double>(
       0,
-          (previous, value) => math.max(previous, value),
+      (previous, value) => math.max(previous, value),
     );
 
     final maxY = math.max(1.0, highest * 1.2);
@@ -393,7 +359,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: [
         Text(
           '주 총 학습 시간: '
-              '${TimeFormatter.toHms(weekly.totalStudySeconds)}',
+          '${TimeFormatter.toHms(weekly.totalStudySeconds)}',
         ),
         const SizedBox(height: 8),
         const Text(
@@ -409,10 +375,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               maxY: maxY,
               alignment: BarChartAlignment.spaceAround,
               borderData: FlBorderData(show: false),
-              gridData: const FlGridData(
-                show: true,
-                drawVerticalLine: false,
-              ),
+              gridData: const FlGridData(show: true, drawVerticalLine: false),
               titlesData: FlTitlesData(
                 topTitles: const AxisTitles(
                   sideTitles: SideTitles(showTitles: false),
@@ -448,7 +411,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         meta: meta,
                         child: Text(
                           '${_weekdays[index]}\n'
-                              '${days[index].month}/${days[index].day}',
+                          '${days[index].month}/${days[index].day}',
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 10),
                         ),
@@ -459,7 +422,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ),
               barGroups: List.generate(
                 7,
-                    (index) => BarChartGroupData(
+                (index) => BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
@@ -481,12 +444,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         // 짧은 기록도 정확한 시간으로 확인
         ...List.generate(
           7,
-              (index) => Padding(
+          (index) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Text(
               '${_weekdays[index]} '
-                  '${days[index].month}/${days[index].day}  '
-                  '${TimeFormatter.toHms(totals[_dateText(days[index])] ?? 0)}',
+              '${days[index].month}/${days[index].day}  '
+              '${TimeFormatter.toHms(totals[_dateText(days[index])] ?? 0)}',
             ),
           ),
         ),
@@ -509,10 +472,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(height: 24),
         const Text(
           '주별 학습 시간',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         _weeklyChart(),
@@ -557,19 +517,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             _selectDay(selectedDay);
           },
           onPageChanged: (focusedDay) {
-            _selectDay(
-              DateTime.utc(
-                focusedDay.year,
-                focusedDay.month,
-                1,
-              ),
-            );
+            _selectDay(DateTime.utc(focusedDay.year, focusedDay.month, 1));
           },
           calendarBuilders: CalendarBuilders<String>(
             dowBuilder: (context, day) {
-              return Center(
-                child: Text(_weekdays[day.weekday - 1]),
-              );
+              return Center(child: Text(_weekdays[day.weekday - 1]));
             },
           ),
           calendarStyle: const CalendarStyle(
@@ -582,9 +534,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               color: AppColor.primaryContainer,
               shape: BoxShape.circle,
             ),
-            todayTextStyle: TextStyle(
-              color: AppColor.textPrimary,
-            ),
+            todayTextStyle: TextStyle(color: AppColor.textPrimary),
             markerDecoration: BoxDecoration(
               color: AppColor.tertiary,
               shape: BoxShape.circle,
@@ -601,18 +551,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         else
           const Text(
             '점이 있는 날짜는 등록된 학습 기록이 있는 날이에요.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColor.textSecondary,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
           ),
         const SizedBox(height: 24),
         Text(
           '${_selectedDay.month}월 ${_selectedDay.day}일 기록',
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         _dailyRecords(),
@@ -637,11 +581,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: [
         Text(
           '총 ${TimeFormatter.toHms(daily.totalStudySeconds)}'
-              ' · 기록 ${daily.sessionCount}개',
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
+          ' · 기록 ${daily.sessionCount}개',
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         if (daily.sessions.isEmpty)
@@ -649,35 +590,32 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Text(
               '이 날짜에 등록된 학습 기록이 없어요.\n'
-                  '공부를 마쳤다면 QR로 기록을 등록해주세요.',
+              '공부를 마쳤다면 QR로 기록을 등록해주세요.',
               style: TextStyle(color: AppColor.textSecondary),
             ),
           ),
         ...daily.sessions.map(
-              (session) => Card(
+          (session) => Card(
             color: AppColor.surfaceCard,
             child: ListTile(
               isThreeLine: true,
               title: Text(
                 TimeFormatter.toHms(session.totalStudySeconds),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
                 '${_timeText(session.startTime)}'
-                    ' ~ ${_timeText(session.endTime)}\n'
-                    '자세 경고 ${session.postureWarningCount}회'
-                    ' · 졸음 ${session.drowsinessCount}회',
+                ' ~ ${_timeText(session.endTime)}\n'
+                '자세 경고 ${session.postureWarningCount}회'
+                ' · 졸음 ${session.drowsinessCount}회',
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => StudySessionDetailScreen(
-                      session: session,
-                    ),
+                    builder: (context) =>
+                        StudySessionDetailScreen(session: session),
                   ),
                 );
               },
@@ -728,12 +666,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ],
             ),
             Expanded(
-              child: TabBarView(
-                children: [
-                  _overviewTab(),
-                  _dailyTab(),
-                ],
-              ),
+              child: TabBarView(children: [_overviewTab(), _dailyTab()]),
             ),
           ],
         ),

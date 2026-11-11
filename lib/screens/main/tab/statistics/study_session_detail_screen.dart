@@ -7,10 +7,7 @@ import 'package:flutter/material.dart';
 class StudySessionDetailScreen extends StatelessWidget {
   final StudySessionModel session;
 
-  const StudySessionDetailScreen({
-    super.key,
-    required this.session,
-  });
+  const StudySessionDetailScreen({super.key, required this.session});
 
   // 1. UTC 시각을 KST 표시값으로 변환
   // 변환한 값은 표시용이며 서버로 다시 전송하지 않음
@@ -39,12 +36,7 @@ class StudySessionDetailScreen extends StatelessWidget {
     return LineChartBarData(
       spots: logs
           .where((log) => log.type == type)
-          .map(
-            (log) => FlSpot(
-          _elapsedSeconds(log.time),
-          row,
-        ),
-      )
+          .map((log) => FlSpot(_elapsedSeconds(log.time), row))
           .toList(),
 
       // 점 사이에 선을 연결하지 않음
@@ -68,7 +60,7 @@ class StudySessionDetailScreen extends StatelessWidget {
   Widget _eventChart() {
     final durationSeconds =
         session.endTime.difference(session.startTime).inMicroseconds /
-            Duration.microsecondsPerSecond;
+        Duration.microsecondsPerSecond;
 
     // 시작과 종료의 순서가 올바르지 않으면 그래프를 그리지 않음
     if (durationSeconds <= 0) {
@@ -76,7 +68,7 @@ class StudySessionDetailScreen extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 20),
         child: Text(
           '시작·종료 시각의 간격이 없어 그래프를 표시할 수 없어요.\n'
-              '아래 목록에서 감지 시각을 확인해주세요.',
+          '아래 목록에서 감지 시각을 확인해주세요.',
           style: TextStyle(color: AppColor.textSecondary),
         ),
       );
@@ -94,11 +86,8 @@ class StudySessionDetailScreen extends StatelessWidget {
       children: [
         const Text(
           '가로축은 세션 시작 이후의 경과 시간이에요.\n'
-              '각 점은 경고가 발생한 시점이며 지속 시간을 뜻하지 않아요.',
-          style: TextStyle(
-            color: AppColor.textSecondary,
-            fontSize: 13,
-          ),
+          '각 점은 경고가 발생한 시점이며 지속 시간을 뜻하지 않아요.',
+          style: TextStyle(color: AppColor.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 16),
 
@@ -117,9 +106,7 @@ class StudySessionDetailScreen extends StatelessWidget {
                   minY: -0.5,
                   maxY: 1.5,
                   clipData: const FlClipData.all(),
-                  lineTouchData: const LineTouchData(
-                    enabled: false,
-                  ),
+                  lineTouchData: const LineTouchData(enabled: false),
                   borderData: FlBorderData(show: false),
                   gridData: const FlGridData(
                     show: true,
@@ -208,7 +195,7 @@ class StudySessionDetailScreen extends StatelessWidget {
         if (outsideCount > 0)
           Text(
             '세션 시간 범위 밖의 로그 ${outsideCount}개는 '
-                '그래프에서 제외했어요. 아래 목록에는 표시해요.',
+            '그래프에서 제외했어요. 아래 목록에는 표시해요.',
             style: const TextStyle(color: AppColor.error),
           ),
       ],
@@ -229,10 +216,7 @@ class StudySessionDetailScreen extends StatelessWidget {
           // 1. 학습 요약
           Text(
             session.studyDate,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Text(
@@ -249,10 +233,7 @@ class StudySessionDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             '시각은 한국 표준시(KST) 기준이에요.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColor.textSecondary,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
           ),
           const SizedBox(height: 16),
           Text('자세 경고: ${session.postureWarningCount}회'),
@@ -262,10 +243,7 @@ class StudySessionDetailScreen extends StatelessWidget {
           const SizedBox(height: 28),
           const Text(
             '경고 발생 시점',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           _eventChart(),
@@ -274,55 +252,43 @@ class StudySessionDetailScreen extends StatelessWidget {
           const SizedBox(height: 28),
           const Text(
             '감지 시각 목록',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
             '횟수는 서버의 집계값이고, 아래 목록은 전달받은 개별 로그예요.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColor.textSecondary,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
           ),
           const SizedBox(height: 12),
-          if (session.detectionLogs.isEmpty)
-            const Text('표시할 감지 로그가 없어요.'),
-          ...session.detectionLogs.map(
-                (log) {
-              final isPosture = log.type == 'posture';
-              final isDrowsiness = log.type == 'drowsiness';
+          if (session.detectionLogs.isEmpty) const Text('표시할 감지 로그가 없어요.'),
+          ...session.detectionLogs.map((log) {
+            final isPosture = log.type == 'posture';
+            final isDrowsiness = log.type == 'drowsiness';
 
-              final label = isPosture
-                  ? '자세 경고'
-                  : isDrowsiness
-                  ? '졸음 감지'
-                  : '기타 감지';
+            final label = isPosture
+                ? '자세 경고'
+                : isDrowsiness
+                ? '졸음 감지'
+                : '기타 감지';
 
-              final color = isPosture
-                  ? AppColor.postureText
-                  : isDrowsiness
-                  ? AppColor.drowsinessText
-                  : AppColor.textSecondary;
+            final color = isPosture
+                ? AppColor.postureText
+                : isDrowsiness
+                ? AppColor.drowsinessText
+                : AppColor.textSecondary;
 
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(
-                  isPosture
-                      ? Icons.accessibility_new
-                      : Icons.notifications_outlined,
-                  color: color,
-                ),
-                title: Text(
-                  label,
-                  style: TextStyle(color: color),
-                ),
-                subtitle: Text(_timeText(log.time)),
-              );
-            },
-          ),
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                isPosture
+                    ? Icons.accessibility_new
+                    : Icons.notifications_outlined,
+                color: color,
+              ),
+              title: Text(label, style: TextStyle(color: color)),
+              subtitle: Text(_timeText(log.time)),
+            );
+          }),
         ],
       ),
     );
