@@ -98,11 +98,12 @@ class _StudyResultScanScreenState extends State<StudyResultScanScreen>
       );
       if (mounted) Navigator.of(context).pop(true);
     } on StudyResultException catch (error) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = error.message;
           _needsLogin = error.status == 401;
         });
+      }
     } catch (_) {
       if (mounted) setState(() => _error = '카메라 또는 연결 상태를 확인하고 다시 시도해주세요.');
     } finally {
@@ -130,30 +131,37 @@ class _StudyResultScanScreenState extends State<StudyResultScanScreen>
             Expanded(
               child: _resultId == null
                   ? MobileScanner(
-                      controller: _controller,
-                      onDetect: _detect,
-                      errorBuilder: (context, error) => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            '카메라를 사용할 수 없어요. 휴대폰 설정에서 오늘로그의 카메라 권한을 허용한 뒤 화면을 다시 열어주세요.',
-                          ),
-                        ),
-                      ),
-                    )
-                  : Center(
-                      child: Icon(
-                        _saved ? Icons.check_circle : Icons.qr_code,
-                        size: 96,
-                      ),
+                controller: _controller,
+                onDetect: _detect,
+                overlayBuilder: (context, constraints) {
+                  return const IgnorePointer(
+                    child: SizedBox.expand(
+                      child: CustomPaint(painter: _QrGuidePainter()),
                     ),
+                  );
+                },
+                errorBuilder: (context, error) => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      '카메라를 사용할 수 없어요. 휴대폰 설정에서 오늘로그의 카메라 권한을 허용한 뒤 화면을 다시 열어주세요.',
+                    ),
+                  ),
+                ),
+              )
+                  : Center(
+                child: Icon(
+                  _saved ? Icons.check_circle : Icons.qr_code,
+                  size: 96,
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
                   const Text(
-                    '좌석 화면의 QR을 비춰주세요.\n학습 기록을 현재 로그인한 계정에 저장합니다.',
+                    '좌석 화면의 QR을 가운데 모서리 표시 안에 맞춰주세요.\n학습 기록을 현재 로그인한 계정에 저장합니다.',
                     textAlign: TextAlign.center,
                   ),
                   if (_busy)
@@ -179,4 +187,54 @@ class _StudyResultScanScreenState extends State<StudyResultScanScreen>
       ),
     ),
   );
+}
+
+class _QrGuidePainter extends CustomPainter {
+  const _QrGuidePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+
+    final side = (size.shortestSide * 0.72).clamp(0.0, 260.0).toDouble();
+    final frame = Rect.fromCenter(
+      center: size.center(Offset.zero),
+      width: side,
+      height: side,
+    );
+    final mask = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(Offset.zero & size)
+      ..addRect(frame);
+    canvas.drawPath(mask, Paint()..color = const Color(0x55000000));
+
+    final length = side * 0.13;
+
+    final corners = Path()
+      ..moveTo(frame.left, frame.top + length)
+      ..lineTo(frame.left, frame.top)
+      ..lineTo(frame.left + length, frame.top)
+      ..moveTo(frame.right - length, frame.top)
+      ..lineTo(frame.right, frame.top)
+      ..lineTo(frame.right, frame.top + length)
+      ..moveTo(frame.right, frame.bottom - length)
+      ..lineTo(frame.right, frame.bottom)
+      ..lineTo(frame.right - length, frame.bottom)
+      ..moveTo(frame.left + length, frame.bottom)
+      ..lineTo(frame.left, frame.bottom)
+      ..lineTo(frame.left, frame.bottom - length);
+
+    canvas.drawPath(
+      corners,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _QrGuidePainter oldDelegate) => false;
 }
