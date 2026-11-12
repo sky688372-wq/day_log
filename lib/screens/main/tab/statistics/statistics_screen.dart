@@ -77,22 +77,26 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   // 2. 전체 새로고침
-  void _reload() {
-    _loadMonthly();
-    _loadWeekly();
-    _loadDaily();
+  Future<void> _reload({bool keepContent = false}) async {
+    await Future.wait<void>([
+      _loadMonthly(keepContent: keepContent),
+      _loadWeekly(keepContent: keepContent),
+      _loadDaily(keepContent: keepContent),
+    ]);
   }
 
   // 3. 월별 조회
-  Future<void> _loadMonthly() async {
+  Future<void> _loadMonthly({bool keepContent = false}) async {
     final requestId = ++_monthlyRequestId;
     final date = _selectedDay;
     final token = _token;
 
-    setState(() {
-      _isMonthlyLoading = true;
-      _monthly = null;
-    });
+    if (!keepContent || _monthly == null) {
+      setState(() {
+        _isMonthlyLoading = true;
+        _monthly = null;
+      });
+    }
 
     final result = token == null || token.trim().isEmpty
         ? null
@@ -107,15 +111,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   // 4. 주별 조회
-  Future<void> _loadWeekly() async {
+  Future<void> _loadWeekly({bool keepContent = false}) async {
     final requestId = ++_weeklyRequestId;
     final start = _weekStart;
     final token = _token;
 
-    setState(() {
-      _isWeeklyLoading = true;
-      _weekly = null;
-    });
+    if (!keepContent || _weekly == null) {
+      setState(() {
+        _isWeeklyLoading = true;
+        _weekly = null;
+      });
+    }
 
     final result = token == null || token.trim().isEmpty
         ? null
@@ -134,15 +140,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   // 5. 일별 조회
-  Future<void> _loadDaily() async {
+  Future<void> _loadDaily({bool keepContent = false}) async {
     final requestId = ++_dailyRequestId;
     final date = _selectedDay;
     final token = _token;
 
-    setState(() {
-      _isDailyLoading = true;
-      _daily = null;
-    });
+    if (!keepContent || _daily == null) {
+      setState(() {
+        _isDailyLoading = true;
+        _daily = null;
+      });
+    }
 
     final result = token == null || token.trim().isEmpty
         ? null
@@ -219,6 +227,49 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
+  Widget _panel({
+    required Widget child,
+    Color color = AppColor.surfaceCard,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(16),
+  }) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColor.outline),
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+  }
+
+  Widget _sectionHeading(IconData icon, String title) {
+    return Row(
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColor.primaryContainer,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, size: 19, color: AppColor.primaryDark),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColor.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // 11. 월 선택
   Widget _monthSelector() {
     return Row(
@@ -231,9 +282,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               : () => _moveMonth(-1),
           icon: const Icon(Icons.chevron_left),
         ),
-        Text(
-          '${_selectedDay.year}년 ${_selectedDay.month}월',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        Expanded(
+          child: Text(
+            '${_selectedDay.year}년 ${_selectedDay.month}월',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColor.textPrimary,
+            ),
+          ),
         ),
         IconButton(
           tooltip: '다음 달',
@@ -253,34 +311,47 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final monthly = _monthly!;
 
-    return Card(
-      color: AppColor.surfaceCard,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('이번 조회 월의 학습 시간'),
-            const SizedBox(height: 8),
-            Text(
-              TimeFormatter.toHms(monthly.totalStudySeconds),
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: AppColor.primary,
+    return _panel(
+      color: AppColor.surfaceTint,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeading(Icons.schedule_rounded, '월별 학습 시간'),
+          const SizedBox(height: 8),
+          Text(
+            TimeFormatter.toHms(monthly.totalStudySeconds),
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              color: AppColor.primaryDark,
+            ),
+          ),
+          const SizedBox(height: 8),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColor.primaryContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Text(
+                '학습일 ${monthly.studyDayCount}일',
+                style: const TextStyle(
+                  color: AppColor.primaryDark,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
+          ),
+          if (monthly.days.isEmpty) ...[
             const SizedBox(height: 8),
-            Text('학습일 ${monthly.studyDayCount}일'),
-            if (monthly.days.isEmpty) ...[
-              const SizedBox(height: 8),
-              const Text(
-                '이 달에 등록된 기록이 없어요.',
-                style: TextStyle(color: AppColor.textSecondary),
-              ),
-            ],
+            const Text(
+              '이 달에 등록된 기록이 없어요.',
+              style: TextStyle(color: AppColor.textSecondary),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -357,14 +428,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text(
+          '주간 합계',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColor.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
         Text(
-          '주 총 학습 시간: '
-          '${TimeFormatter.toHms(weekly.totalStudySeconds)}',
+          TimeFormatter.toHms(weekly.totalStudySeconds),
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: AppColor.primaryDark,
+          ),
         ),
         const SizedBox(height: 8),
         const Text(
-          '세로축 단위: 분',
-          style: TextStyle(color: AppColor.textSecondary),
+          '단위: 분',
+          style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -407,13 +491,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         return const SizedBox.shrink();
                       }
 
+                      final selected = isSameDay(days[index], _selectedDay);
                       return SideTitleWidget(
                         meta: meta,
                         child: Text(
                           '${_weekdays[index]}\n'
                           '${days[index].month}/${days[index].day}',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 10),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: selected
+                                ? AppColor.primaryDark
+                                : AppColor.textSecondary,
+                          ),
                         ),
                       );
                     },
@@ -441,41 +534,115 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 짧은 기록도 정확한 시간으로 확인
-        ...List.generate(
-          7,
-          (index) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
+        // 날짜별 학습 시간을 그래프 아래에서 확인
+        _sectionHeading(Icons.view_list_rounded, '요일별 학습 기록'),
+        const SizedBox(height: 10),
+        for (var index = 0; index < days.length; index++)
+          _weeklyDayRow(
+            day: days[index],
+            seconds: totals[_dateText(days[index])] ?? 0,
+          ),
+      ],
+    );
+  }
+
+  Widget _weeklyDayRow({required DateTime day, required int seconds}) {
+    final selected = isSameDay(day, _selectedDay);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: selected ? AppColor.surfaceTint : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColor.primaryContainer
+                  : AppColor.surfaceSunken,
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Text(
-              '${_weekdays[index]} '
-              '${days[index].month}/${days[index].day}  '
-              '${TimeFormatter.toHms(totals[_dateText(days[index])] ?? 0)}',
+              '${_weekdays[day.weekday - 1]}요일',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: selected ? AppColor.primaryDark : AppColor.textPrimary,
+              ),
             ),
           ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '${day.month}월 ${day.day}일',
+              style: const TextStyle(color: AppColor.textSecondary),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              TimeFormatter.toHms(seconds),
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: seconds > 0
+                    ? AppColor.primaryDark
+                    : AppColor.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _refreshableList({
+    required String storageKey,
+    required List<Widget> children,
+  }) {
+    return RefreshIndicator(
+      color: AppColor.primaryDark,
+      backgroundColor: AppColor.surfaceCard,
+      triggerMode: RefreshIndicatorTriggerMode.onEdge,
+      onRefresh: () => _reload(keepContent: true),
+      child: ListView(
+        key: PageStorageKey<String>(storageKey),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          20 + MediaQuery.paddingOf(context).bottom,
         ),
-      ],
+        children: children,
+      ),
     );
   }
 
   // 14. 전체 통계 탭
   Widget _overviewTab() {
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.paddingOf(context).bottom,
-      ),
+    return _refreshableList(
+      storageKey: 'statistics-overview',
       children: [
         _monthSelector(),
+        const SizedBox(height: 12),
         _monthlySummary(),
-        const SizedBox(height: 24),
-        const Text(
-          '주별 학습 시간',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        const SizedBox(height: 16),
+        _panel(
+          padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sectionHeading(Icons.bar_chart_rounded, '주별 학습 시간'),
+              const SizedBox(height: 8),
+              _weeklyChart(),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        _weeklyChart(),
       ],
     );
   }
@@ -487,76 +654,112 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         if ((day.sessionCount ?? 0) > 0) day.date,
     };
 
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.paddingOf(context).bottom,
-      ),
+    return _refreshableList(
+      storageKey: 'statistics-daily',
       children: [
         _monthSelector(),
-        TableCalendar<String>(
-          firstDay: DateTime.utc(2000, 1, 1),
-          lastDay: DateTime.utc(2100, 12, 31),
-          focusedDay: _selectedDay,
-          currentDay: _kstToday(),
-          calendarFormat: CalendarFormat.month,
-          startingDayOfWeek: StartingDayOfWeek.monday,
-          headerVisible: false,
-          availableGestures: AvailableGestures.horizontalSwipe,
-          selectedDayPredicate: (day) {
-            return isSameDay(day, _selectedDay);
-          },
-          eventLoader: (day) {
-            return recordDates.contains(_dateText(day))
-                ? ['record']
-                : <String>[];
-          },
-          onDaySelected: (selectedDay, focusedDay) {
-            _selectDay(selectedDay);
-          },
-          onPageChanged: (focusedDay) {
-            _selectDay(DateTime.utc(focusedDay.year, focusedDay.month, 1));
-          },
-          calendarBuilders: CalendarBuilders<String>(
-            dowBuilder: (context, day) {
-              return Center(child: Text(_weekdays[day.weekday - 1]));
-            },
-          ),
-          calendarStyle: const CalendarStyle(
-            outsideDaysVisible: false,
-            selectedDecoration: BoxDecoration(
-              color: AppColor.primary,
-              shape: BoxShape.circle,
-            ),
-            todayDecoration: BoxDecoration(
-              color: AppColor.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            todayTextStyle: TextStyle(color: AppColor.textPrimary),
-            markerDecoration: BoxDecoration(
-              color: AppColor.tertiary,
-              shape: BoxShape.circle,
-            ),
+        const SizedBox(height: 12),
+        _panel(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TableCalendar<String>(
+                firstDay: DateTime.utc(2000, 1, 1),
+                lastDay: DateTime.utc(2100, 12, 31),
+                focusedDay: _selectedDay,
+                currentDay: _kstToday(),
+                calendarFormat: CalendarFormat.month,
+                startingDayOfWeek: StartingDayOfWeek.monday,
+                headerVisible: false,
+                availableGestures: AvailableGestures.horizontalSwipe,
+                selectedDayPredicate: (day) {
+                  return isSameDay(day, _selectedDay);
+                },
+                eventLoader: (day) {
+                  return recordDates.contains(_dateText(day))
+                      ? ['record']
+                      : <String>[];
+                },
+                onDaySelected: (selectedDay, focusedDay) {
+                  _selectDay(selectedDay);
+                },
+                onPageChanged: (focusedDay) {
+                  _selectDay(
+                    DateTime.utc(focusedDay.year, focusedDay.month, 1),
+                  );
+                },
+                calendarBuilders: CalendarBuilders<String>(
+                  dowBuilder: (context, day) {
+                    return Center(
+                      child: Text(
+                        _weekdays[day.weekday - 1],
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: day.weekday == DateTime.sunday
+                              ? AppColor.error
+                              : AppColor.textSecondary,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                calendarStyle: const CalendarStyle(
+                  outsideDaysVisible: false,
+                  selectedDecoration: BoxDecoration(
+                    color: AppColor.primaryDark,
+                    shape: BoxShape.circle,
+                  ),
+                  todayDecoration: BoxDecoration(
+                    color: AppColor.primaryContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  todayTextStyle: TextStyle(color: AppColor.textPrimary),
+                  markerDecoration: BoxDecoration(
+                    color: AppColor.tertiary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              if (_isMonthlyLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('달력의 기록 표시를 불러오는 중이에요.'),
+                )
+              else if (_monthly == null)
+                _failure(_loadMonthly)
+              else
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.circle, size: 7, color: AppColor.tertiary),
+                      SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          '학습 기록이 있는 날',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColor.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ),
-        if (_isMonthlyLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text('달력의 기록 표시를 불러오는 중이에요.'),
-          )
-        else if (_monthly == null)
-          _failure(_loadMonthly)
-        else
-          const Text(
-            '점이 있는 날짜는 등록된 학습 기록이 있는 날이에요.',
-            style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
-          ),
         const SizedBox(height: 24),
         Text(
-          '${_selectedDay.month}월 ${_selectedDay.day}일 기록',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          '${_selectedDay.month}월 ${_selectedDay.day}일 '
+          '${_weekdays[_selectedDay.weekday - 1]}요일',
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColor.textPrimary,
+          ),
         ),
         const SizedBox(height: 12),
         _dailyRecords(),
@@ -576,50 +779,110 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final daily = _daily!;
 
+    if (daily.sessions.isEmpty) {
+      return _panel(
+        child: const Text(
+          '이날 등록한 학습 기록이 없어요.',
+          style: TextStyle(color: AppColor.textSecondary),
+        ),
+      );
+    }
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '총 ${TimeFormatter.toHms(daily.totalStudySeconds)}'
-          ' · 기록 ${daily.sessionCount}개',
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        if (daily.sessions.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Text(
-              '이 날짜에 등록된 학습 기록이 없어요.\n'
-              '공부를 마쳤다면 QR로 기록을 등록해주세요.',
-              style: TextStyle(color: AppColor.textSecondary),
-            ),
+          TimeFormatter.toHms(daily.totalStudySeconds),
+          style: const TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.w800,
+            color: AppColor.primaryDark,
           ),
-        ...daily.sessions.map(
-          (session) => Card(
-            color: AppColor.surfaceCard,
-            child: ListTile(
-              isThreeLine: true,
-              title: Text(
-                TimeFormatter.toHms(session.totalStudySeconds),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                '${_timeText(session.startTime)}'
-                ' ~ ${_timeText(session.endTime)}\n'
-                '자세 경고 ${session.postureWarningCount}회'
-                ' · 졸음 ${session.drowsinessCount}회',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        StudySessionDetailScreen(session: session),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '학습 기록 ${daily.sessionCount}개',
+          style: const TextStyle(color: AppColor.textSecondary),
+        ),
+        const SizedBox(height: 16),
+        Material(
+          color: AppColor.surfaceCard,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: AppColor.outline),
+          ),
+          child: Column(
+            children: [
+              for (final (index, session) in daily.sessions.indexed) ...[
+                if (index > 0)
+                  const Divider(
+                    height: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    color: AppColor.outline,
                   ),
-                );
-              },
-            ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            StudySessionDetailScreen(session: session),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${_timeText(session.startTime)}'
+                                ' ~ ${_timeText(session.endTime)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColor.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                '자세 경고 ${session.postureWarningCount}회'
+                                ' · 졸음 ${session.drowsinessCount}회',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColor.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            TimeFormatter.toHms(session.totalStudySeconds),
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.primaryDark,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: AppColor.textHint,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ],
@@ -648,22 +911,37 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    tooltip: '통계 새로고침',
-                    onPressed: _reload,
-                    icon: const Icon(Icons.refresh),
-                  ),
+                  // IconButton(
+                  //   tooltip: '통계 새로고침',
+                  //   onPressed: _reload,
+                  //   icon: const Icon(Icons.refresh),
+                  // ),
                 ],
               ),
             ),
-            const TabBar(
-              labelColor: AppColor.primary,
-              unselectedLabelColor: AppColor.textSecondary,
-              indicatorColor: AppColor.primary,
-              tabs: [
-                Tab(text: '전체 통계'),
-                Tab(text: '날짜별 기록'),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColor.surfaceSunken,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const TabBar(
+                  labelColor: AppColor.primaryDark,
+                  unselectedLabelColor: AppColor.textSecondary,
+                  dividerColor: Colors.transparent,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorPadding: EdgeInsets.all(4),
+                  indicator: BoxDecoration(
+                    color: AppColor.primaryContainer,
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  tabs: [
+                    Tab(text: '전체 통계'),
+                    Tab(text: '날짜별 기록'),
+                  ],
+                ),
+              ),
             ),
             Expanded(
               child: TabBarView(children: [_overviewTab(), _dailyTab()]),
