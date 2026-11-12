@@ -17,7 +17,7 @@ class ApiService {
   // 개발자 모드를 위한 부분
   // 서버 주소 기본값 (개발자 모드에서 변경 가능)
   static const String defaultServerAddress = String.fromEnvironment(
-    'API_SERVER_ADDRESS', defaultValue: 'http://192.168.137.1.1:8000');
+    'API_SERVER_ADDRESS', defaultValue: 'http://192.168.137.1:8000');
   static const String resultWebOrigin = String.fromEnvironment('RESULT_WEB_ORIGIN');
   static const String _apiPath = '/api/v1';
 
