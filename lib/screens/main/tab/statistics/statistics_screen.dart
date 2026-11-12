@@ -126,10 +126,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final result = token == null || token.trim().isEmpty
         ? null
         : await ApiService.tryGetWeeklyStatistics(
-            token: token,
-            startDate: start,
-            endDate: start.add(const Duration(days: 6)),
-          );
+      token: token,
+      startDate: start,
+      endDate: start.add(const Duration(days: 6)),
+    );
 
     if (!mounted || requestId != _weeklyRequestId) return;
 
@@ -378,7 +378,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Expanded(
               child: Text(
                 '${start.year}.${start.month}.${start.day}'
-                ' ~ ${end.year}.${end.month}.${end.day}',
+                    ' ~ ${end.year}.${end.month}.${end.day}',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -411,7 +411,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final days = List.generate(
       7,
-      (index) => _weekStart.add(Duration(days: index)),
+          (index) => _weekStart.add(Duration(days: index)),
     );
 
     final minutes = days
@@ -420,7 +420,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final highest = minutes.fold<double>(
       0,
-      (previous, value) => math.max(previous, value),
+          (previous, value) => math.max(previous, value),
     );
 
     final maxY = math.max(1.0, highest * 1.2);
@@ -496,7 +496,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         meta: meta,
                         child: Text(
                           '${_weekdays[index]}\n'
-                          '${days[index].month}/${days[index].day}',
+                              '${days[index].month}/${days[index].day}',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 10,
@@ -515,7 +515,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ),
               barGroups: List.generate(
                 7,
-                (index) => BarChartGroupData(
+                    (index) => BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
@@ -754,7 +754,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(height: 24),
         Text(
           '${_selectedDay.month}월 ${_selectedDay.day}일 '
-          '${_weekdays[_selectedDay.weekday - 1]}요일',
+              '${_weekdays[_selectedDay.weekday - 1]}요일',
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -842,7 +842,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             children: [
                               Text(
                                 '${_timeText(session.startTime)}'
-                                ' ~ ${_timeText(session.endTime)}',
+                                    ' ~ ${_timeText(session.endTime)}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: AppColor.textPrimary,
@@ -851,7 +851,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                               const SizedBox(height: 5),
                               Text(
                                 '자세 경고 ${session.postureWarningCount}회'
-                                ' · 졸음 ${session.drowsinessCount}회',
+                                    ' · 졸음 ${session.drowsinessCount}회',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColor.textSecondary,
@@ -921,25 +921,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColor.surfaceSunken,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const TabBar(
-                  labelColor: AppColor.primaryDark,
-                  unselectedLabelColor: AppColor.textSecondary,
-                  dividerColor: Colors.transparent,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicatorPadding: EdgeInsets.all(4),
-                  indicator: BoxDecoration(
-                    color: AppColor.primaryContainer,
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+              child: Material(
+                color: AppColor.surfaceSunken,
+                borderRadius: BorderRadius.circular(16),
+                clipBehavior: Clip.antiAlias,
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: TabBar(
+                    splashBorderRadius: BorderRadius.all(Radius.circular(12)),
+                    labelColor: AppColor.primaryDark,
+                    unselectedLabelColor: AppColor.textSecondary,
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: AppColor.primaryContainer,
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    tabs: [
+                      Tab(text: '전체 통계'),
+                      Tab(text: '날짜별 기록'),
+                    ],
                   ),
-                  tabs: [
-                    Tab(text: '전체 통계'),
-                    Tab(text: '날짜별 기록'),
-                  ],
                 ),
               ),
             ),
