@@ -19,12 +19,24 @@ class StatisticsScreen extends StatefulWidget {
   State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
-class _StatisticsScreenState extends State<StatisticsScreen> {
+class _StatisticsScreenState extends State<StatisticsScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs;
+  final _monthlyScroll = ScrollController(keepScrollOffset: false);
+  final _dailyScroll = ScrollController(keepScrollOffset: false);
+  int _lastTabIndex = 0;
   // 선택한 날짜
   late DateTime _selectedDay;
+  late DateTime _calendarFocusedDay;
+  PageController? _calendarController;
+  static final _calendarFirstDay = DateTime.utc(2000, 1, 1);// 캘린더의 시작 날짜
+  late DateTime _overviewMonth;
 
   // 조회 결과
   MonthlyStatisticsModel? _monthly;
+  MonthlyStatisticsModel? _overviewMonthly;
+  bool _isOverviewMonthlyLoading = true;
+  int _overviewMonthlyRequestId = 0;
   WeeklyStatisticsModel? _weekly;
   DailyStatisticsModel? _daily;
 
@@ -43,15 +55,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   void initState() {
     super.initState();
+    _tabs = TabController(length: 2, vsync: this)
+      ..addListener(_handleTabChange);
 
-    // 기기 시간대와 관계없이 KST의 오늘 날짜 사용
-    final now = DateTime.now().toUtc().add(const Duration(hours: 9));
-    _selectedDay = DateTime.utc(now.year, now.month, now.day);
+    _selectedDay = _kstToday();
+    _calendarFocusedDay = _selectedDay;
+    _overviewMonth = DateTime.utc(_selectedDay.year, _selectedDay.month);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _reload();
     });
+  }
+
+  void _handleTabChange() {
+    final index = _tabs.index;
+    if (index == _lastTabIndex) return;
+    _lastTabIndex = index;
+    final scroll = index == 0 ? _monthlyScroll : _dailyScroll;
+    if (scroll.hasClients) {
+      scroll.jumpTo(scroll.position.minScrollExtent);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabs.removeListener(_handleTabChange);
+    _tabs.dispose();
+    _monthlyScroll.dispose();
+    _dailyScroll.dispose();
+    super.dispose();
   }
 
   // 1. 날짜 비교에 사용할 날짜값
@@ -79,6 +112,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   // 2. 전체 새로고침
   Future<void> _reload({bool keepContent = false}) async {
     await Future.wait<void>([
+      _loadOverviewMonthly(keepContent: keepContent),
       _loadMonthly(keepContent: keepContent),
       _loadWeekly(keepContent: keepContent),
       _loadDaily(keepContent: keepContent),
@@ -88,7 +122,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   // 3. 월별 조회
   Future<void> _loadMonthly({bool keepContent = false}) async {
     final requestId = ++_monthlyRequestId;
-    final date = _selectedDay;
+    final date = _calendarFocusedDay;
     final token = _token;
 
     if (!keepContent || _monthly == null) {
@@ -107,6 +141,30 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     setState(() {
       _monthly = result;
       _isMonthlyLoading = false;
+    });
+  }
+
+  Future<void> _loadOverviewMonthly({bool keepContent = false}) async {
+    final month = _overviewMonth;
+    final requestId = ++_overviewMonthlyRequestId;
+    final token = _token;
+
+    if (!keepContent || _overviewMonthly == null) {
+      setState(() {
+        _isOverviewMonthlyLoading = true;
+        _overviewMonthly = null;
+      });
+    }
+
+    final result = token == null || token.trim().isEmpty
+        ? null
+        : await ApiService.tryGetMonthlyStatistics(token: token, month: month);
+
+    if (!mounted || requestId != _overviewMonthlyRequestId) return;
+
+    setState(() {
+      _overviewMonthly = result;
+      _isOverviewMonthlyLoading = false;
     });
   }
 
@@ -170,27 +228,48 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     if (isSameDay(next, _selectedDay)) return;
 
-    final previous = _selectedDay;
-    final previousWeekStart = _weekStart;
+    final previousWeek = _weekStart;
 
     setState(() {
       _selectedDay = next;
     });
 
-    if (previous.year != next.year || previous.month != next.month) {
-      _loadMonthly();
-    }
-
-    if (!isSameDay(previousWeekStart, _weekStart)) {
+    if (previousWeek != _weekStart) {
       _loadWeekly();
     }
-
     _loadDaily();
   }
 
   // 7. 월 이동
   void _moveMonth(int amount) {
-    _selectDay(DateTime.utc(_selectedDay.year, _selectedDay.month + amount, 1));
+    _focusCalendarMonth(
+      DateTime.utc(_calendarFocusedDay.year, _calendarFocusedDay.month + amount),
+    );
+  }
+
+  // 실제 페이지 번호로 표시 월을 계산해 이전 콜백의 날짜에 의존하지 않음
+  void _onCalendarPageChanged(DateTime _) {
+    final controller = _calendarController;
+    if (controller == null || !controller.hasClients) return;
+    final page = controller.page?.round();
+    if (page == null) return;
+
+    _focusCalendarMonth(
+      DateTime.utc(_calendarFirstDay.year, _calendarFirstDay.month + page),
+    );
+  }
+
+  // 달력의 표시 월과 기록 조회 날짜는 따로 유지
+  void _focusCalendarMonth(DateTime day) {
+    if (day.year == _calendarFocusedDay.year &&
+        day.month == _calendarFocusedDay.month) {
+      return;
+    }
+
+    setState(() {
+      _calendarFocusedDay = _dateOnly(day);
+    });
+    _loadMonthly();
   }
 
   // 8. 세션 시각을 KST로 표시
@@ -271,20 +350,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   // 11. 월 선택
-  Widget _monthSelector() {
+  void _changeMonth(int amount, {required bool overview}) {
+    if (!overview) {
+      _moveMonth(amount);
+      return;
+    }
+
+    setState(() {
+      _overviewMonth = DateTime.utc(
+        _overviewMonth.year,
+        _overviewMonth.month + amount,
+      );
+    });
+    _loadOverviewMonthly();
+  }
+
+  Widget _monthSelector({bool overview = false}) {
+    final month = overview ? _overviewMonth : _calendarFocusedDay;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           tooltip: '이전 달',
-          onPressed: _selectedDay.year == 2000 && _selectedDay.month == 1
+          onPressed: month.year == 2000 && month.month == 1
               ? null
-              : () => _moveMonth(-1),
+              : () => _changeMonth(-1, overview: overview),
           icon: const Icon(Icons.chevron_left),
         ),
         Expanded(
           child: Text(
-            '${_selectedDay.year}년 ${_selectedDay.month}월',
+            '${month.year}년 ${month.month}월',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 20,
@@ -295,9 +390,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         IconButton(
           tooltip: '다음 달',
-          onPressed: _selectedDay.year == 2100 && _selectedDay.month == 12
+          onPressed: month.year == 2100 && month.month == 12
               ? null
-              : () => _moveMonth(1),
+              : () => _changeMonth(1, overview: overview),
           icon: const Icon(Icons.chevron_right),
         ),
       ],
@@ -306,10 +401,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   // 12. 월별 요약
   Widget _monthlySummary() {
-    if (_isMonthlyLoading) return _loading();
-    if (_monthly == null) return _failure(_loadMonthly);
+    if (_isOverviewMonthlyLoading) return _loading();
+    if (_overviewMonthly == null) return _failure(_loadOverviewMonthly);
 
-    final monthly = _monthly!;
+    final monthly = _overviewMonthly!;
 
     return _panel(
       color: AppColor.surfaceTint,
@@ -317,7 +412,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeading(Icons.schedule_rounded, '월별 학습 시간'),
+          _sectionHeading(Icons.schedule_rounded, '월간 학습 시간'),
           const SizedBox(height: 8),
           Text(
             TimeFormatter.toHms(monthly.totalStudySeconds),
@@ -356,6 +451,112 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
+  Widget _monthlyChart() {
+    final month = _overviewMonth;
+    final dayCount = DateTime.utc(month.year, month.month + 1, 0).day;
+    final totals = {
+      for (final day in _overviewMonthly?.days ?? <StatisticsDayModel>[])
+        day.date: day.totalStudySeconds,
+    };
+    final minutes = List<double>.generate(dayCount, (index) {
+      final date = DateTime.utc(month.year, month.month, index + 1);
+      return (totals[_dateText(date)] ?? 0) / 60;
+    });
+    final highest = minutes.fold<double>(0, (max, value) => math.max(max, value));
+    final interval = math.max(1.0, (highest / 4).ceilToDouble());
+
+    return _panel(
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeading(Icons.bar_chart_rounded, '날짜별 학습 시간'),
+          const SizedBox(height: 8),
+          const Text(
+            '단위: 분',
+            style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 200,
+            child: BarChart(
+              BarChartData(
+                minY: 0,
+                maxY: interval * 4,
+                alignment: BarChartAlignment.spaceAround,
+                borderData: FlBorderData(show: false),
+                barTouchData: BarTouchData(enabled: highest > 0),
+                gridData: FlGridData(
+                  drawVerticalLine: false,
+                  horizontalInterval: interval,
+                ),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      interval: interval,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toStringAsFixed(0),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColor.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      getTitlesWidget: (value, meta) {
+                        final day = value.toInt();
+                        if (day != 1 && day != 8 && day != 15 &&
+                            day != 22 && day != dayCount) {
+                          return const SizedBox.shrink();
+                        }
+                        return SideTitleWidget(
+                          meta: meta,
+                          child: Text(
+                            '$day일',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColor.textSecondary,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                barGroups: List.generate(
+                  dayCount,
+                      (index) => BarChartGroupData(
+                    x: index + 1,
+                    barRods: [
+                      BarChartRodData(
+                        toY: minutes[index],
+                        width: 4,
+                        color: AppColor.primaryDark,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 13. 주별 학습 시간 그래프
   Widget _weeklyChart() {
     final start = _weekStart;
@@ -364,34 +565,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            IconButton(
-              tooltip: '이전 주',
-              onPressed: () {
-                final next = _selectedDay.subtract(const Duration(days: 7));
-                if (next.isBefore(DateTime.utc(2000))) return;
-                _selectDay(next);
-              },
-              icon: const Icon(Icons.chevron_left),
-            ),
-            Expanded(
-              child: Text(
-                '${start.year}.${start.month}.${start.day}'
-                    ' ~ ${end.year}.${end.month}.${end.day}',
-                textAlign: TextAlign.center,
-              ),
-            ),
-            IconButton(
-              tooltip: '다음 주',
-              onPressed: () {
-                final next = _selectedDay.add(const Duration(days: 7));
-                if (next.isAfter(DateTime.utc(2100, 12, 31))) return;
-                _selectDay(next);
-              },
-              icon: const Icon(Icons.chevron_right),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            '${start.year}.${start.month}.${start.day}'
+                ' ~ ${end.year}.${end.month}.${end.day}',
+            style: const TextStyle(color: AppColor.textSecondary),
+          ),
         ),
         if (_isWeeklyLoading)
           _loading()
@@ -601,7 +781,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _refreshableList({
-    required String storageKey,
+    required ScrollController controller,
     required List<Widget> children,
   }) {
     return RefreshIndicator(
@@ -610,7 +790,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       triggerMode: RefreshIndicatorTriggerMode.onEdge,
       onRefresh: () => _reload(keepContent: true),
       child: ListView(
-        key: PageStorageKey<String>(storageKey),
+        controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(
           20,
@@ -623,26 +803,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  // 14. 전체 통계 탭
+  // 14. 월별 통계 탭
   Widget _overviewTab() {
     return _refreshableList(
-      storageKey: 'statistics-overview',
+      controller: _monthlyScroll,
       children: [
-        _monthSelector(),
+        _monthSelector(overview: true),
         const SizedBox(height: 12),
         _monthlySummary(),
         const SizedBox(height: 16),
-        _panel(
-          padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionHeading(Icons.bar_chart_rounded, '주별 학습 시간'),
-              const SizedBox(height: 8),
-              _weeklyChart(),
-            ],
-          ),
-        ),
+        _monthlyChart(),
       ],
     );
   }
@@ -655,7 +825,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     };
 
     return _refreshableList(
-      storageKey: 'statistics-daily',
+      controller: _dailyScroll,
       children: [
         _monthSelector(),
         const SizedBox(height: 12),
@@ -665,9 +835,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TableCalendar<String>(
-                firstDay: DateTime.utc(2000, 1, 1),
+                firstDay: _calendarFirstDay,
                 lastDay: DateTime.utc(2100, 12, 31),
-                focusedDay: _selectedDay,
+                focusedDay: _calendarFocusedDay,
                 currentDay: _kstToday(),
                 calendarFormat: CalendarFormat.month,
                 startingDayOfWeek: StartingDayOfWeek.monday,
@@ -681,14 +851,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ? ['record']
                       : <String>[];
                 },
-                onDaySelected: (selectedDay, focusedDay) {
+                onDaySelected: (selectedDay, _) {
                   _selectDay(selectedDay);
                 },
-                onPageChanged: (focusedDay) {
-                  _selectDay(
-                    DateTime.utc(focusedDay.year, focusedDay.month, 1),
-                  );
+                // 화살표로 월을 바꿀 때 진행 중인 페이지 이동과 애니메이션이 겹치지 않게 함
+                pageAnimationEnabled: false,
+                onCalendarCreated: (controller) {
+                  _calendarController = controller;
                 },
+                onPageChanged: _onCalendarPageChanged,
                 calendarBuilders: CalendarBuilders<String>(
                   dowBuilder: (context, day) {
                     return Center(
@@ -763,6 +934,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         const SizedBox(height: 12),
         _dailyRecords(),
+        const SizedBox(height: 20),
+        _panel(
+          padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sectionHeading(Icons.bar_chart_rounded, '주별 학습 시간'),
+              const SizedBox(height: 8),
+              _weeklyChart(),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -891,65 +1074,66 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 12, 0),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      '통계',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: AppColor.textPrimary,
-                      ),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 12, 0),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    '통계',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppColor.textPrimary,
                     ),
                   ),
-                  // IconButton(
-                  //   tooltip: '통계 새로고침',
-                  //   onPressed: _reload,
-                  //   icon: const Icon(Icons.refresh),
-                  // ),
-                ],
-              ),
+                ),
+                // IconButton(
+                //   tooltip: '통계 새로고침',
+                //   onPressed: _reload,
+                //   icon: const Icon(Icons.refresh),
+                // ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: Material(
-                color: AppColor.surfaceSunken,
-                borderRadius: BorderRadius.circular(16),
-                clipBehavior: Clip.antiAlias,
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: TabBar(
-                    splashBorderRadius: BorderRadius.all(Radius.circular(12)),
-                    labelColor: AppColor.primaryDark,
-                    unselectedLabelColor: AppColor.textSecondary,
-                    dividerColor: Colors.transparent,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: BoxDecoration(
-                      color: AppColor.primaryContainer,
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                    tabs: [
-                      Tab(text: '전체 통계'),
-                      Tab(text: '날짜별 기록'),
-                    ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Material(
+              color: AppColor.surfaceSunken,
+              borderRadius: BorderRadius.circular(16),
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: TabBar(
+                  controller: _tabs,
+                  splashBorderRadius: const BorderRadius.all(Radius.circular(12)),
+                  labelColor: AppColor.primaryDark,
+                  unselectedLabelColor: AppColor.textSecondary,
+                  dividerColor: Colors.transparent,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicator: const BoxDecoration(
+                    color: AppColor.primaryContainer,
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
+                  tabs: const [
+                    Tab(text: '월별 통계'),
+                    Tab(text: '날짜별 기록'),
+                  ],
                 ),
               ),
             ),
-            Expanded(
-              child: TabBarView(children: [_overviewTab(), _dailyTab()]),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabs,
+              children: [_overviewTab(), _dailyTab()],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
