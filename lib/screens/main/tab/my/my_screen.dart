@@ -60,9 +60,9 @@ class _MyScreenState extends State<MyScreen> {
 
   // 2. 외부 사이트 열기
   Future<void> _openUrl(
-    String address, {
-    String emptyMessage = '아직 준비 중인 페이지예요.',
-  }) async {
+      String address, {
+        String emptyMessage = '아직 준비 중인 페이지예요.',
+      }) async {
     final value = address.trim();
 
     //주소가 아직 입력되지 않은 경우
@@ -163,7 +163,7 @@ class _MyScreenState extends State<MyScreen> {
           content: const SingleChildScrollView(
             child: Text(
               '이 기기에 저장된 자동 로그인 정보가 삭제돼요.\n'
-              '학습 기록은 계정에 그대로 남아 있어요.',
+                  '학습 기록은 계정에 그대로 남아 있어요.',
               style: TextStyle(height: 1.6, color: AppColor.textSecondary),
             ),
           ),
@@ -222,7 +222,7 @@ class _MyScreenState extends State<MyScreen> {
       //이전 사용자 화면으로 돌아갈 수 없도록 기존 화면 제거
       Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
+            (route) => false,
       );
     } else {
       setState(() {
@@ -277,41 +277,47 @@ class _MyScreenState extends State<MyScreen> {
     Color iconColor = AppColor.primary,
     Color iconBackground = AppColor.primaryContainer,
   }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
-      horizontalTitleGap: 12,
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: iconBackground,
-          borderRadius: BorderRadius.circular(12),
+    return Theme(
+      data: Theme.of(context).copyWith(
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 4),
+        horizontalTitleGap: 12,
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: iconBackground,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 21, color: iconColor),
         ),
-        child: Icon(icon, size: 21, color: iconColor),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: AppColor.textPrimary,
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: AppColor.textPrimary,
+          ),
         ),
+        subtitle: subtitle == null
+            ? null
+            : Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColor.textSecondary,
+          ),
+        ),
+        trailing: Icon(
+          external ? Icons.open_in_new : Icons.chevron_right,
+          size: external ? 17 : 22,
+          color: AppColor.textHint,
+        ),
+        onTap: _isLoggingOut ? null : onTap,
       ),
-      subtitle: subtitle == null
-          ? null
-          : Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColor.textSecondary,
-              ),
-            ),
-      trailing: Icon(
-        external ? Icons.open_in_new : Icons.chevron_right,
-        size: external ? 17 : 22,
-        color: AppColor.textHint,
-      ),
-      onTap: _isLoggingOut ? null : onTap,
     );
   }
 
@@ -421,7 +427,7 @@ class _MyScreenState extends State<MyScreen> {
                     _showInfo(
                       title: '학습 기록 등록 방법',
                       content:
-                          '오늘로그는 좌석에서 만들어진 학습 결과를 '
+                      '오늘로그는 좌석에서 만들어진 학습 결과를 '
                           'QR로 등록하는 방식의 앱이에요.\n\n'
                           '학습을 마친 뒤 좌석 화면에 표시된 QR을 '
                           '오늘로그에서 스캔하면, 로그인한 계정의 '
@@ -437,7 +443,7 @@ class _MyScreenState extends State<MyScreen> {
                     _showInfo(
                       title: '통계 확인 방법',
                       content:
-                          '아래 통계 탭에서 등록된 학습 기록을 확인할 수 있어요.\n\n'
+                      '아래 통계 탭에서 등록된 학습 기록을 확인할 수 있어요.\n\n'
                           '전체 통계\n'
                           '월별 총 학습 시간과 학습일 수, '
                           '주별 학습 시간 그래프를 확인해요.\n\n'
@@ -468,7 +474,7 @@ class _MyScreenState extends State<MyScreen> {
                     _showInfo(
                       title: '오늘로그 소개',
                       content:
-                          '오늘로그는 AI 스마트 학습 좌석 프로젝트의 '
+                      '오늘로그는 AI 스마트 학습 좌석 프로젝트의 '
                           '학습 기록 앱이에요.\n\n'
                           '좌석에서 만들어진 학습 결과를 등록하고, '
                           '날짜별 기록과 학습 시간, 자세·졸음 감지 정보를 '
