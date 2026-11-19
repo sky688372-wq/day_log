@@ -21,8 +21,7 @@ class _MyScreenState extends State<MyScreen> {
   static const String _projectGithubUrl =
       'https://github.com/cowbrush03/MDP2026-Study';
 
-  // TODO: 포트폴리오 완성 후 따옴표 안에 https://로 시작하는 주소 입력
-  static const String _portfolioUrl = '';
+  static const String _portfolioUrl = 'https://velog.io/@han090213/MDP-프로젝트-스마트한-학습을-위한-AI스마트-학습-좌석-기획';
 
   //현재 온보딩에서 사용하는 Storyset 일러스트 출처
   static const String _illustrationUrl = 'https://storyset.com';
